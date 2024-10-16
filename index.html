@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Own Journey</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="background"></div>
+    <div class="content-overlay">
+        <h1 id="goalHeader">My Own Journey</h1>
+
+        <div id="goalSetting" class="section">
+            <div id="goalInput" style="display: none;">Set Goal</div>
+        </div>
+
+        <div id="currentSession" class="section">
+            <h2>Current Session</h2>
+            <button id="startStopBtn">Start</button>
+            <div id="sessionTimer">00:00:00</div>
+        </div>
+
+        <div id="overallProgress" class="section">
+            <h2>Overall Progress</h2>
+            <div id="journeyVisualization">
+                <div id="progressBar"></div>
+            </div>
+            <div id="totalTime">Total Time: 00:00:00</div>
+        </div>
+
+        <div id="pomodoro" class="section">
+            <h2>Pomodoro Timer</h2>
+            <div class="pomodoro-container">
+                <div id="pomodoroState">Inactive</div>
+                <div id="pomodoroTimer" class="pomodoro-timer">25:00</div>
+                <button id="startPomodoroBtn">Start Pomodoro</button>
+                <button id="takeBreakBtn" style="display: none;">Take a Break</button>
+                <button id="backToWorkBtn" style="display: none;">Back to Work</button>
+                <button id="stopPomodoroBtn" style="display: none;">Stop Pomodoro</button>
+            </div>
+        </div>
+
+        <div id="logs" class="section">
+            <h2>Progress Logs</h2>
+        </div>
+
+        <div id="goalActions" class="section">
+            <button id="renameGoalBtn">Rename Goal</button>
+            <button id="resetEverythingBtn">Reset Everything</button>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
