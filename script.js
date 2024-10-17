@@ -1,7 +1,7 @@
 // Global variables
-let goal = '';
+let goals = [];
+let currentGoalId = null;
 let sessionStartTime = 0;
-let totalTime = 0;
 let isSessionActive = false;
 let sessionInterval;
 let isSessionPaused = false;
@@ -20,7 +20,6 @@ const BREAK_DURATION = 5 * 60; // 5 minutes in seconds
 
 // DOM elements
 const goalHeader = document.getElementById('goalHeader');
-const goalInput = document.getElementById('goalInput');
 const startStopBtn = document.getElementById('startStopBtn');
 const sessionTimer = document.getElementById('sessionTimer');
 const totalTimeDisplay = document.getElementById('totalTime');
@@ -32,23 +31,71 @@ const takeBreakBtn = document.getElementById('takeBreakBtn');
 const backToWorkBtn = document.getElementById('backToWorkBtn');
 const stopPomodoroBtn = document.getElementById('stopPomodoroBtn');
 const logsContainer = document.getElementById('logs');
-const renameGoalBtn = document.getElementById('renameGoalBtn');
+const goalSelector = document.getElementById('goalSelector');
+const newGoalBtn = document.getElementById('newGoalBtn');
+const editGoalBtn = document.getElementById('editGoalBtn');
+const deleteGoalBtn = document.getElementById('deleteGoalBtn');
 const resetEverythingBtn = document.getElementById('resetEverythingBtn');
 const background = document.querySelector('.background');
 
 // Initialize from localStorage
 function init() {
-    goal = localStorage.getItem('goal') || '';
-    totalTime = parseInt(localStorage.getItem('totalTime') || '0');
+    goals = JSON.parse(localStorage.getItem('goals')) || [];
+    currentGoalId = localStorage.getItem('currentGoalId');
+    
+    if (goals.length === 0) {
+        createNewGoal('My First Goal');
+    }
+    
+    if (!currentGoalId || !goals.find(goal => goal.id === currentGoalId)) {
+        currentGoalId = goals[0].id;
+    }
+    
+    updateGoalSelector();
     updateGoalDisplay();
-    updateTotalTimeDisplay();
     loadLogs();
     updatePomodoroDisplay(POMODORO_DURATION);
 }
 
+// Create a new goal
+function createNewGoal(name) {
+    const newGoal = {
+        id: Date.now().toString(),
+        name: name,
+        totalTime: 0,
+        logs: []
+    };
+    goals.push(newGoal);
+    saveGoals();
+    return newGoal;
+}
+
+// Save goals to localStorage
+function saveGoals() {
+    localStorage.setItem('goals', JSON.stringify(goals));
+    localStorage.setItem('currentGoalId', currentGoalId);
+}
+
+// Update goal selector
+function updateGoalSelector() {
+    goalSelector.innerHTML = '';
+    goals.forEach(goal => {
+        const option = document.createElement('option');
+        option.value = goal.id;
+        option.textContent = goal.name;
+        goalSelector.appendChild(option);
+    });
+    goalSelector.value = currentGoalId;
+}
+
 // Update goal display
 function updateGoalDisplay() {
-    goalHeader.textContent = goal || 'My Own Journey';
+    const currentGoal = goals.find(goal => goal.id === currentGoalId);
+    if (currentGoal) {
+        goalHeader.textContent = currentGoal.name;
+        updateTotalTimeDisplay(currentGoal.totalTime);
+        updateProgressBar(currentGoal.totalTime);
+    }
 }
 
 // Toggle session
@@ -75,12 +122,12 @@ function stopSession() {
     const sessionDuration = Math.floor((Date.now() - sessionStartTime) / 1000);
     const accomplishment = prompt("What did you accomplish in this session?");
     addLog(accomplishment, sessionDuration);
-    totalTime += sessionDuration;
-    localStorage.setItem('totalTime', totalTime.toString());
+    const currentGoal = goals.find(goal => goal.id === currentGoalId);
+    currentGoal.totalTime += sessionDuration;
+    saveGoals();
     sessionStartTime = 0;
     updateSessionDisplay();
-    updateTotalTimeDisplay();
-    updateProgressBar(totalTime);
+    updateGoalDisplay();
     startStopBtn.textContent = 'Start';
 }
 
@@ -89,8 +136,9 @@ function updateSessionTime() {
     if (!isSessionPaused) {
         const currentSessionTime = Math.floor((Date.now() - sessionStartTime) / 1000);
         updateSessionDisplay(currentSessionTime);
-        updateProgressBar(totalTime + currentSessionTime);
-        updateTotalTimeDisplay(totalTime + currentSessionTime);
+        const currentGoal = goals.find(goal => goal.id === currentGoalId);
+        updateProgressBar(currentGoal.totalTime + currentSessionTime);
+        updateTotalTimeDisplay(currentGoal.totalTime + currentSessionTime);
     }
 }
 
@@ -100,13 +148,13 @@ function updateSessionDisplay(time = 0) {
 }
 
 // Update total time display
-function updateTotalTimeDisplay(time = totalTime) {
+function updateTotalTimeDisplay(time) {
     totalTimeDisplay.textContent = `Total Time: ${formatTime(time)}`;
 }
 
 // Update progress bar
 function updateProgressBar(time) {
-    const progress = (time / 3600) * 100; // Assuming 1 hour is 100%
+    const progress = (time / 72000) * 100; // Assuming 1 hour is 100%
     progressBar.style.width = `${Math.min(progress, 100)}%`;
 }
 
@@ -125,20 +173,31 @@ function padZero(num) {
 
 // Add log
 function addLog(accomplishment, duration) {
-    const logEntry = document.createElement('p');
-    logEntry.textContent = `${new Date().toLocaleString()} - Worked for ${formatTime(duration)} - ${accomplishment || 'No accomplishment recorded'}`;
-    logsContainer.appendChild(logEntry);
-    saveLogs();
+    const currentGoal = goals.find(goal => goal.id === currentGoalId);
+    const logEntry = {
+        timestamp: new Date().toLocaleString(),
+        duration: duration,
+        accomplishment: accomplishment || 'No accomplishment recorded'
+    };
+    currentGoal.logs.push(logEntry);
+    saveGoals();
+    displayLogs();
 }
 
-// Save logs
-function saveLogs() {
-    localStorage.setItem('logs', logsContainer.innerHTML);
+// Display logs
+function displayLogs() {
+    const currentGoal = goals.find(goal => goal.id === currentGoalId);
+    logsContainer.innerHTML = '';
+    currentGoal.logs.forEach(log => {
+        const logElement = document.createElement('p');
+        logElement.textContent = `${log.timestamp} - Worked for ${formatTime(log.duration)} - ${log.accomplishment}`;
+        logsContainer.appendChild(logElement);
+    });
 }
 
 // Load logs
 function loadLogs() {
-    logsContainer.innerHTML = localStorage.getItem('logs') || '';
+    displayLogs();
 }
 
 // Start Pomodoro
@@ -263,44 +322,70 @@ function toggleSessionPause() {
     background.classList.toggle('walking', isSessionActive && !isSessionPaused);
 }
 
-// Rename goal
-function renameGoal() {
-    const newGoal = prompt('Enter new goal:');
-    if (newGoal !== null && newGoal.trim() !== '') {
-        goal = newGoal.trim();
-        localStorage.setItem('goal', goal);
+// New Goal
+function newGoal() {
+    const name = prompt('Enter the name of your new goal:');
+    if (name) {
+        const newGoal = createNewGoal(name);
+        currentGoalId = newGoal.id;
+        updateGoalSelector();
         updateGoalDisplay();
+        saveGoals();
     }
 }
 
-// Reset everything
+// Edit Goal
+function editGoal() {
+    const currentGoal = goals.find(goal => goal.id === currentGoalId);
+    const newName = prompt('Enter the new name for your goal:', currentGoal.name);
+    if (newName && newName !== currentGoal.name) {
+        currentGoal.name = newName;
+        updateGoalSelector();
+        updateGoalDisplay();
+        saveGoals();
+    }
+}
+
+// Delete Goal
+function deleteGoal() {
+    if (goals.length === 1) {
+        alert('You cannot delete your only goal.');
+        return;
+    }
+
+    if (confirm('Are you sure you want to delete this goal? This action cannot be undone.')) {
+        goals = goals.filter(goal => goal.id !== currentGoalId);
+        currentGoalId = goals[0].id;
+        updateGoalSelector();
+        updateGoalDisplay();
+        saveGoals();
+    }
+}
+
+// Reset Everything
 function resetEverything() {
-    if (confirm('Are you sure you want to reset everything? This action cannot be undone.')) {
+    if (confirm('Are you sure you want to reset everything? This will delete all goals and data. This action cannot be undone.')) {
         localStorage.clear();
-        goal = '';
-        totalTime = 0;
-        sessionStartTime = 0;
-        isSessionActive = false;
-        isSessionPaused = false;
-        clearInterval(sessionInterval);
-        stopPomodoro();
-        updateGoalDisplay();
-        updateSessionDisplay();
-        updateTotalTimeDisplay();
-        updateProgressBar(0);
-        logsContainer.innerHTML = '';
-        startStopBtn.textContent = 'Start';
+        location.reload();
     }
 }
 
-// Event listeners
+// Event Listeners
 startStopBtn.addEventListener('click', toggleSession);
 startPomodoroBtn.addEventListener('click', startPomodoro);
 stopPomodoroBtn.addEventListener('click', stopPomodoro);
 takeBreakBtn.addEventListener('click', takeBreak);
 backToWorkBtn.addEventListener('click', backToWork);
-renameGoalBtn.addEventListener('click', renameGoal);
+newGoalBtn.addEventListener('click', newGoal);
+editGoalBtn.addEventListener('click', editGoal);
+deleteGoalBtn.addEventListener('click', deleteGoal);
 resetEverythingBtn.addEventListener('click', resetEverything);
+goalSelector.addEventListener('change', function() {
+    currentGoalId = this.value;
+    updateGoalDisplay();
+    loadLogs();
+    saveGoals();
+});
 
 // Initialize the app
 init();
