@@ -1,55 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Own Journey</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Own Journey</title>
 
-    <!-- Styles -->
-    <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css" />
 
-    <!-- ────────────────────────────────────────────────────────────
-         Firebase initialisation (v9 modular CDN build)
-    ──────────────────────────────────────────────────────────── -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
-        import {
-            getAuth,
-            GoogleAuthProvider
-        } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+  <!-- ───────────────────────────────────────── Firebase ── -->
+  <script type="module">
+    import { initializeApp }  from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getAnalytics }  from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
+    import { getAuth, GoogleAuthProvider }
+           from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
-        // 🔑 Your project config — straight from the Firebase Console
-        const firebaseConfig = {
-            apiKey: "AIzaSyCot_UHHa2E9_kcAW7nGKjBDfIDNW9Z724",
-            authDomain: "your-own-journey-452b7.firebaseapp.com",
-            projectId: "your-own-journey-452b7",
-            storageBucket: "your-own-journey-452b7.appspot.com",
-            messagingSenderId: "135631319561",
-            appId: "1:135631319561:web:f8320cd0261b8d52f0fed8",
-            measurementId: "G-Y5TZSJG0J0"
-        };
+    /*  🔑  YOUR CONFIG  */
+    const firebaseConfig = {
+      apiKey:            "AIzaSyCot_UHHa2E9_kcAW7nGKjBDfIDNW9Z724",
+      authDomain:        "your-own-journey-452b7.firebaseapp.com",
+      projectId:         "your-own-journey-452b7",
+      storageBucket:     "your-own-journey-452b7.appspot.com",
+      messagingSenderId: "135631319561",
+      appId:             "1:135631319561:web:f8320cd0261b8d52f0fed8",
+      measurementId:     "G-Y5TZSJG0J0"
+    };
 
-        // Initialise Firebase
-        const app  = initializeApp(firebaseConfig);
-        getAnalytics(app);              // optional – remove if unused
-        const auth = getAuth(app);
+    const app  = initializeApp(firebaseConfig);
+    getAnalytics(app);                   // optional
+    const auth = getAuth(app);
 
-        // Expose objects so script.js can reuse them without re-initialising
-        window.firebaseAuth   = auth;
-        window.GoogleProvider = new GoogleAuthProvider();
-    </script>
+    /* expose for script.js */
+    window.firebaseAuth   = auth;
+    window.GoogleProvider = new GoogleAuthProvider();
+  </script>
 </head>
 
 <body>
-    <!-- ─────────────────────────────
-         Authentication header / UI
-    ───────────────────────────── -->
-    <header id="authHeader">
-        <button id="loginBtn">Sign in with Google</button>
-        <span id="userInfo" hidden></span>
-        <button id="logoutBtn" hidden>Logout</button>
-    </header>
+  <header id="authHeader">
+    <button id="loginBtn">Sign in with Google</button>
+    <span   id="userInfo" hidden></span>
+    <button id="logoutBtn" hidden>Logout</button>
+  </header>
 
     <!-- ─────────────────────────────
          Main app content
