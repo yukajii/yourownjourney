@@ -9,8 +9,8 @@ export function useSession() {
 
   useEffect(() => {
     /* TODO: add real timer logic later */
-    return () => {};         // empty cleanup satisfies TS
-  }, []);
+    return () => {};          // cleanup
+  }, []);                     // two args ✅
 
   const start = () => {
     if (!current) return;
