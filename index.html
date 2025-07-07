@@ -1,99 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Leagues</title>
-
-  <link rel="stylesheet" href="styles.css" />
-
-  <!-- ───────────────────────────────────────── Firebase ── -->
-  <script type="module">
-    import { initializeApp }  from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-    import { getAnalytics }  from "https://www.gstatic.com/firebasejs/9.22.2/firebase-analytics.js";
-    import { getAuth, GoogleAuthProvider }
-           from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
-
-    /*  🔑  YOUR CONFIG (replace these values with your Leagues Firebase project)  */
-    const firebaseConfig = {
-      apiKey: "AIzaSyCEw80e897zNASO4Zw6rqyudCjzo4jzaAI",
-      authDomain: "leagues-2790f.firebaseapp.com",
-      projectId: "leagues-2790f",
-      storageBucket: "leagues-2790f.appspot.com",
-      messagingSenderId: "998292692484",
-      appId: "1:998292692484:web:29d733fc7e032d4f739f51",
-      measurementId: "G-HQ0EDCZCQ9"
-    };
-
-
-    const app  = initializeApp(firebaseConfig);
-    getAnalytics(app);                   // optional
-    const auth = getAuth(app);
-
-    /* expose for script.js */
-    window.firebaseAuth   = auth;
-    window.GoogleProvider = new GoogleAuthProvider();
-  </script>
-</head>
-
-<body>
-  <header id="authHeader">
-    <button id="loginBtn">Sign in with Google</button>
-    <span   id="userInfo" hidden></span>
-    <button id="logoutBtn" hidden>Logout</button>
-  </header>
-
-    <!-- ─────────────────────────────
-         Main app content
-    ───────────────────────────── -->
-    <div class="background"></div>
-
-    <div class="content-overlay">
-        <h1 id="goalHeader">Leagues</h1>
-
-        <div id="currentSession" class="section">
-            <h2>Current Session</h2>
-            <button id="startStopBtn">Start</button>
-            <div id="sessionTimer">00:00:00</div>
-        </div>
-
-        <div id="overallProgress" class="section">
-            <h2>Leagues Progress</h2>
-            <div id="leaguesVisualization">
-                <div id="progressBar"></div>
-            </div>
-        </div>
-
-        <div id="pomodoro" class="section">
-            <h2>Pomodoro Timer</h2>
-            <div class="pomodoro-container">
-                <div id="pomodoroState">Inactive</div>
-                <div id="pomodoroTimer" class="pomodoro-timer">25:00</div>
-                <button id="startPomodoroBtn">Start Pomodoro</button>
-                <button id="takeBreakBtn"   style="display:none;">Take a Break</button>
-                <button id="backToWorkBtn"  style="display:none;">Back to Work</button>
-                <button id="stopPomodoroBtn"style="display:none;">Stop Pomodoro</button>
-            </div>
-        </div>
-
-        <div id="logs" class="section">
-            <h2>Leagues Logs</h2>
-        </div>
-
-        <div id="goalManagement" class="section">
-            <h2>Goal Management</h2>
-            <select id="goalSelector"></select>
-            <button id="newGoalBtn">New Goal</button>
-            <button id="editGoalBtn">Edit Goal</button>
-            <button id="deleteGoalBtn">Delete Goal</button>
-        </div>
-
-        <div id="resetSection" class="section">
-            <button id="resetEverythingBtn">Reset Everything</button>
-        </div>
-    </div>
-
-    <!-- Main application logic -->
-    <script type="module" src="script.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + React + TS</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
