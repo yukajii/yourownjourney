@@ -1,19 +1,11 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth }       from 'firebase/auth';
-import { getFirestore }  from 'firebase/firestore';
+import { initializeApp } from "firebase/app";
 
-/* TODO: Replace with your new Firebase credentials */
-const firebaseConfig = {
-  apiKey:            'YOUR_API_KEY',
-  authDomain:        'leagues-project.firebaseapp.com',
-  projectId:         'leagues-project',
-  storageBucket:     'leagues-project.appspot.com',
-  messagingSenderId: 'YOUR_SENDER_ID',
-  appId:             'YOUR_APP_ID',
-  measurementId:     'YOUR_MEASUREMENT_ID',
-};
-
-const app = initializeApp(firebaseConfig);
-
-export const auth = getAuth(app);
-export const db   = getFirestore(app);
+export const app = initializeApp({
+  apiKey:            "YOUR-API-KEY",
+  authDomain:        "your.firebaseapp.com",
+  projectId:         "your",
+  storageBucket:     "your.appspot.com",
+  messagingSenderId: "123",
+  appId:             "1:123:web:abc",
+  measurementId:     "G-XXXX"
+});

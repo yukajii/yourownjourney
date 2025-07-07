@@ -8,13 +8,8 @@ export function useSession() {
   const startRef = useRef<number | null>(null);
 
   useEffect(() => {
-    let id: number | null = null;
-    if (running) {
-      id = window.setInterval(() => {
-        setElapsed(Math.floor((Date.now() - (startRef.current ?? 0)) / 1000));
-      }, 1000);
-    }
-    return () => { /* cleanup later */ };
+    /* TODO: add real timer logic later */
+    return () => {};         // empty cleanup satisfies TS
   }, []);
 
   const start = () => {

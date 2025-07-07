@@ -6,7 +6,7 @@ import {
   getFirestore,
   type DocumentReference
 } from "firebase/firestore";
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "./AuthContext";
 import type { Goal } from "../models";
 import { app } from "../firebase";
@@ -15,10 +15,14 @@ import { app } from "../firebase";
 type GoalsCtx = {
   goals: Goal[];
   currentGoalId: string | null;
+  /** the current goal object (null if none yet) */
+  current: Goal | null;
   createGoal: (name: string) => void;
   renameGoal: (id: string, name: string) => void;
   deleteGoal: (id: string) => void;
   setCurrentGoal: (id: string) => void;
+  /** append a log + duration to the current goal */
+  pushLog: (durationSec: number, note: string) => void;
 };
 
 const GoalsContext = createContext<GoalsCtx | undefined>(undefined);
@@ -72,6 +76,25 @@ export const GoalsProvider = ({ children }: { children: ReactNode }) => {
     await setDoc(userDoc(), { goals: g, currentGoalId: current }, { merge: true });
   };
 
+
+  /* pushLog implementation for useSession() */
+  const pushLog = (durationSec: number, note: string) => {
+    if (!currentGoalId) return;
+    const updated = goals.map(g =>
+      g.id === currentGoalId
+        ? {
+            ...g,
+            totalTime: g.totalTime + durationSec,
+            logs: [
+              ...g.logs,
+              { timestamp: Date.now(), durationSec, note }
+            ]
+          }
+        : g
+    );
+    persist(updated, currentGoalId);
+  };
+
   /* CRUD exposed to UI (TODO: flesh out later) */
   const createGoal = (name: string) => {
     const newGoal: Goal = {
@@ -97,10 +120,12 @@ export const GoalsProvider = ({ children }: { children: ReactNode }) => {
   const value: GoalsCtx = {
     goals,
     currentGoalId,
+    current: goals.find(g => g.id === currentGoalId) ?? null,
     createGoal,
     renameGoal,
     deleteGoal,
-    setCurrentGoal: id => persist(goals, id)
+    setCurrentGoal: id => persist(goals, id),
+    pushLog
   };
 
   return <GoalsContext.Provider value={value}>{children}</GoalsContext.Provider>;
