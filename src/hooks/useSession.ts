@@ -22,7 +22,7 @@ export function useSession() {
   const stop = (note: string) => {
     if (!current || startRef.current === null) return;
     const durationSec = Math.floor((Date.now() - startRef.current) / 1000);
-    pushLog(current.id, durationSec, note);
+    pushLog(durationSec, note);
     setRunning(false);
     setElapsed(0);
     startRef.current = null;
