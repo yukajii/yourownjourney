@@ -11,14 +11,14 @@ const Logs = () => {
   ); // newest first
 
   return (
-    <section className="card flex flex-col gap-3 max-h-72 overflow-y-auto">
+    <section id="logs-section" className="card flex flex-col gap-3 max-h-72 overflow-y-auto">
       <h2 className="text-lg font-semibold">Logs</h2>
 
       {logs.length === 0 && (
         <p className="text-sm text-gray-400">No logs yet. Start walking!</p>
       )}
 
-      {logs.map((l, idx) => (
+      {logs.map((l) => (
         <div
           key={l.timestamp}
           className="flex justify-between px-3 py-1 text-sm odd:bg-[color:var(--surface-alt)] rounded"

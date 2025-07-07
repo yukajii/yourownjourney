@@ -7,7 +7,7 @@ const GoalManager = () => {
     createGoal,
     renameGoal,
     deleteGoal,
-    setCurrentGoal
+    setCurrentGoal,
   } = useGoals();
 
   const handleCreate = () => {
@@ -17,37 +17,34 @@ const GoalManager = () => {
 
   const handleRename = () => {
     if (!currentGoalId) return;
-    const current = goals.find(g => g.id === currentGoalId);
+    const current = goals.find((g) => g.id === currentGoalId);
     const name = prompt("Rename goal:", current?.name)?.trim();
     if (name) renameGoal(currentGoalId, name);
   };
 
   const handleDelete = () => {
-    if (goals.length === 1)
-      return alert("You need at least one goal.");
+    if (goals.length === 1) return alert("You need at least one goal.");
     if (confirm("Delete this goal?")) deleteGoal(currentGoalId!);
   };
 
   return (
-    <section className="card flex flex-col gap-4">
+    <section id="goal-manager" className="card flex flex-col gap-4">
       <h2 className="text-lg font-semibold">Goals</h2>
 
       {goals.length > 0 ? (
         <select
           className="p-2 rounded bg-[color:var(--surface-alt)] text-gray-100 border border-white/10 focus:outline-none"
           value={currentGoalId ?? undefined}
-          onChange={e => setCurrentGoal(e.target.value)}
+          onChange={(e) => setCurrentGoal(e.target.value)}
         >
-          {goals.map(g => (
+          {goals.map((g) => (
             <option key={g.id} value={g.id}>
               {g.name}
             </option>
           ))}
         </select>
       ) : (
-        <p className="text-sm text-gray-400">
-          No goals yet – create one!
-        </p>
+        <p className="text-sm text-gray-400">No goals yet – create one!</p>
       )}
 
       <div className="flex gap-2">

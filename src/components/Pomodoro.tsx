@@ -7,11 +7,11 @@ const Pomodoro = () => {
     startFocus,
     takeBreak,
     backToWork,
-    stop
+    stop,
   } = usePomodoro();
 
   return (
-    <section className="card flex flex-col gap-3">
+    <section id="pomodoro-section" className="card flex flex-col gap-3">
       <h2 className="text-lg font-semibold">Pomodoro</h2>
 
       <div className="text-xl font-mono">

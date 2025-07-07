@@ -12,16 +12,13 @@ const SessionTimer: React.FC = () => {
     : "0.0";
 
   return (
-    <section className="card flex flex-col gap-4">
+    <section id="session-timer" className="card flex flex-col gap-4">
       <h2 className="text-lg font-semibold">Current Session</h2>
 
-      {/* main clock */}
       <div className="text-4xl font-mono tracking-wide">{fmt(seconds)}</div>
 
-      {/* animated footsteps */}
       <FootstepStrip running={isActive} width={320} />
 
-      {/* controls */}
       <button
         onClick={isActive ? stop : start}
         className={`btn ${isActive ? "btn-red" : "btn-green"}`}
