@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Own Journey</title>
+  <title>Leagues</title>
 
   <link rel="stylesheet" href="styles.css" />
 
@@ -14,16 +14,17 @@
     import { getAuth, GoogleAuthProvider }
            from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
-    /*  🔑  YOUR CONFIG  */
+    /*  🔑  YOUR CONFIG (replace these values with your Leagues Firebase project)  */
     const firebaseConfig = {
-      apiKey:            "AIzaSyCot_UHHa2E9_kcAW7nGKjBDfIDNW9Z724",
-      authDomain:        "your-own-journey-452b7.firebaseapp.com",
-      projectId:         "your-own-journey-452b7",
-      storageBucket:     "your-own-journey-452b7.appspot.com",
-      messagingSenderId: "135631319561",
-      appId:             "1:135631319561:web:f8320cd0261b8d52f0fed8",
-      measurementId:     "G-Y5TZSJG0J0"
+      apiKey: "AIzaSyCEw80e897zNASO4Zw6rqyudCjzo4jzaAI",
+      authDomain: "leagues-2790f.firebaseapp.com",
+      projectId: "leagues-2790f",
+      storageBucket: "leagues-2790f.firebasestorage.app",
+      messagingSenderId: "998292692484",
+      appId: "1:998292692484:web:29d733fc7e032d4f739f51",
+      measurementId: "G-HQ0EDCZCQ9"
     };
+
 
     const app  = initializeApp(firebaseConfig);
     getAnalytics(app);                   // optional
@@ -48,7 +49,7 @@
     <div class="background"></div>
 
     <div class="content-overlay">
-        <h1 id="goalHeader">My Own Journey</h1>
+        <h1 id="goalHeader">Leagues</h1>
 
         <div id="currentSession" class="section">
             <h2>Current Session</h2>
@@ -57,11 +58,11 @@
         </div>
 
         <div id="overallProgress" class="section">
-            <h2>Overall Progress</h2>
-            <div id="journeyVisualization">
+            <h2>Leagues Progress</h2>
+            <div id="leaguesVisualization">
                 <div id="progressBar"></div>
             </div>
-            <div id="totalTime">Total Time: 00:00:00</div>
+            <div id="totalLeagues">Leagues Walked: 0.0</div>
         </div>
 
         <div id="pomodoro" class="section">
@@ -77,7 +78,7 @@
         </div>
 
         <div id="logs" class="section">
-            <h2>Progress Logs</h2>
+            <h2>Leagues Logs</h2>
         </div>
 
         <div id="goalManagement" class="section">

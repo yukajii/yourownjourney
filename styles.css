@@ -69,7 +69,7 @@ button:hover { opacity: 0.9; }
 #resetEverythingBtn { background: #f44336; }
 
 /* ─────────── Progress bar ─────────── */
-#journeyVisualization {
+#leaguesVisualization {
     width: 100%;
     height: 20px;
     background: #ddd;

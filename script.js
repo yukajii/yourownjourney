@@ -129,7 +129,7 @@ function updateGoalDisplay() {
   const g = currentGoal();
   if (!g) return;
   goalHeader.textContent = g.name;
-  totalTime.textContent = `Total Time: ${fmt(g.totalTime)}`;
+  totalTime.textContent = `Leagues Walked: ${toLeagues(g.totalTime)}`;
   progressBar.style.width = `${Math.min(g.totalTime / 72000 * 100, 100)}%`;
 }
 
@@ -148,7 +148,7 @@ function updateSessionTimer() {
   const sec = Math.floor((Date.now() - sessionStartTime) / 1000);
   sessionTimer.textContent = fmt(sec);
   const g = currentGoal();
-  totalTime.textContent = `Total Time: ${fmt(g.totalTime + sec)}`;
+  totalTime.textContent = `Leagues Walked: ${toLeagues(g.totalTime + sec)}`;
   progressBar.style.width =
     `${Math.min((g.totalTime + sec) / 72000 * 100, 100)}%`;
 }
@@ -177,7 +177,7 @@ function renderLogs() {
   currentGoal().logs.forEach(l => {
     const p = document.createElement("p");
     p.textContent =
-      `${l.timestamp} – Worked ${fmt(l.duration)} – ${l.accomplishment}`;
+      `${l.timestamp} – Walked ${toLeagues(l.duration)} – ${l.accomplishment}`;
     logsBox.appendChild(p);
   });
 }
@@ -190,6 +190,10 @@ const fmt = s => {
         sec = s % 60;
   return `${pad(h)}:${pad(m)}:${pad(sec)}`;
 };
+
+function toLeagues(seconds) {
+  return `${(seconds / 3600).toFixed(1)} Leagues`;
+}
 
 /* ───────── Event bindings ───────── */
 startStopBtn.addEventListener("click", toggleSession);
