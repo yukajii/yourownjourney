@@ -11,7 +11,7 @@ const Pomodoro = () => {
   } = usePomodoro();
 
   return (
-    <section className="my-4 p-4 border rounded flex flex-col gap-3">
+    <section className="card flex flex-col gap-3">
       <h2 className="text-lg font-semibold">Pomodoro</h2>
 
       <div className="text-xl font-mono">

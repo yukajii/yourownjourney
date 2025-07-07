@@ -10,7 +10,6 @@ const GoalManager = () => {
     setCurrentGoal
   } = useGoals();
 
-  /* ───────── button handlers ───────── */
   const handleCreate = () => {
     const name = prompt("New goal name:")?.trim();
     if (name) createGoal(name);
@@ -29,15 +28,13 @@ const GoalManager = () => {
     if (confirm("Delete this goal?")) deleteGoal(currentGoalId!);
   };
 
-  /* ───────── UI ───────── */
   return (
-    <section className="my-4 p-4 border rounded flex flex-col gap-3">
+    <section className="card flex flex-col gap-4">
       <h2 className="text-lg font-semibold">Goals</h2>
 
-      {/* selector */}
       {goals.length > 0 ? (
         <select
-          className="p-2 border rounded"
+          className="p-2 rounded bg-[color:var(--surface-alt)] text-gray-100 border border-white/10 focus:outline-none"
           value={currentGoalId ?? undefined}
           onChange={e => setCurrentGoal(e.target.value)}
         >
@@ -48,29 +45,25 @@ const GoalManager = () => {
           ))}
         </select>
       ) : (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-400">
           No goals yet – create one!
         </p>
       )}
 
-      {/* action buttons */}
       <div className="flex gap-2">
-        <button
-          onClick={handleCreate}
-          className="flex-1 bg-green-600 text-white rounded p-2"
-        >
+        <button onClick={handleCreate} className="btn btn-green flex-1">
           ➕ New
         </button>
         <button
           onClick={handleRename}
-          className="flex-1 bg-blue-600 text-white rounded p-2"
+          className="btn btn-blue flex-1"
           disabled={!currentGoalId}
         >
           ✏️ Rename
         </button>
         <button
           onClick={handleDelete}
-          className="flex-1 bg-red-600 text-white rounded p-2"
+          className="btn btn-red flex-1"
           disabled={goals.length === 1}
         >
           🗑️ Delete

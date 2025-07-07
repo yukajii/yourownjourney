@@ -1,7 +1,9 @@
+import React from "react";
 import { useSession, fmt } from "../hooks/useSession";
 import { useGoals } from "../contexts/GoalsContext";
+import FootstepStrip from "./FootstepStrip";
 
-const SessionTimer = () => {
+const SessionTimer: React.FC = () => {
   const { isActive, seconds, start, stop } = useSession();
   const { current } = useGoals();
 
@@ -10,21 +12,24 @@ const SessionTimer = () => {
     : "0.0";
 
   return (
-    <section className="my-4 p-4 border rounded flex flex-col gap-3">
+    <section className="card flex flex-col gap-4">
       <h2 className="text-lg font-semibold">Current Session</h2>
 
-      <div className="text-3xl font-mono">{fmt(seconds)}</div>
+      {/* main clock */}
+      <div className="text-4xl font-mono tracking-wide">{fmt(seconds)}</div>
 
+      {/* animated footsteps */}
+      <FootstepStrip running={isActive} width={320} />
+
+      {/* controls */}
       <button
         onClick={isActive ? stop : start}
-        className={`p-3 rounded text-white ${
-          isActive ? "bg-red-600" : "bg-green-600"
-        }`}
+        className={`btn ${isActive ? "btn-red" : "btn-green"}`}
       >
         {isActive ? "Stop" : "Start"}
       </button>
 
-      <div className="text-sm text-gray-600">
+      <div className="text-sm text-gray-400">
         Leagues Walked (preview): {leaguesPreview}
       </div>
     </section>
