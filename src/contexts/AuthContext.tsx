@@ -1,40 +1,49 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { auth } from '../firebase';
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "firebase/auth";
-import type { User } from "firebase/auth";   // <-- type-only import
+import {
+  getAuth,
+  GoogleAuthProvider,
+  signInWithPopup,
+  signOut as fbSignOut,
+  onAuthStateChanged,
+  type User
+} from "firebase/auth";
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { app } from "../firebase";           // the initialized Firebase app
 
-interface AuthCtx {
+/* ---------- Context shape ---------- */
+type AuthCtx = {
   user: User | null;
-  signIn: () => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
-}
-
-const Ctx = createContext<AuthCtx | null>(null);
-
-export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-
-  useEffect(() => {
-    return onAuthStateChanged(auth, setUser);
-  }, []);
-
-  const signIn = async () => {
-    await signInWithPopup(auth, new GoogleAuthProvider());
-  };
-
-  const signOutUser = async () => {
-    await signOut(auth);
-  };
-
-  return (
-    <Ctx.Provider value={{ user, signIn, signOut: signOutUser }}>
-      {children}
-    </Ctx.Provider>
-  );
 };
 
+const AuthContext = createContext<AuthCtx | undefined>(undefined);
 export const useAuth = () => {
-  const ctx = useContext(Ctx);
-  if (!ctx) throw new Error('useAuth must be inside AuthProvider');
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be within <AuthProvider>");
   return ctx;
+};
+
+/* ---------- Provider ---------- */
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const auth = getAuth(app);                // getAuth used now → no TS6133
+  const [user, setUser] = useState<User | null>(null);
+
+  /* listen to Firebase auth */
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, setUser);
+    return () => unsub();
+  }, [auth]);
+
+  /* helpers exposed to UI */
+  const signInWithGoogle = async () => {
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
+  };
+
+  const signOut = async () => {
+    await fbSignOut(auth);
+  };
+
+  const value: AuthCtx = { user, signInWithGoogle, signOut };
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

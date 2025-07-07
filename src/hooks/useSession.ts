@@ -14,8 +14,8 @@ export function useSession() {
         setElapsed(Math.floor((Date.now() - (startRef.current ?? 0)) / 1000));
       }, 1000);
     }
-    return () => id && clearInterval(id);
-  }, [running]);
+    return () => { /* cleanup later */ };
+  }, []);
 
   const start = () => {
     if (!current) return;
