@@ -6,10 +6,14 @@ import {
   Pomodoro,
   Logs,
   GoalManager,
-  ResetAll
 } from './components'; // barrel export once stubs are created
+import { maybeRunIntroTour } from './introTour';
+import React, { useEffect } from 'react';
 
 const App: React.FC = () => {
+  useEffect(() => {
+    maybeRunIntroTour();          // fire after first mount
+  }, []);
   return (
     <div className="min-h-screen flex flex-col">
       <AuthBar />
@@ -20,7 +24,6 @@ const App: React.FC = () => {
         <Pomodoro />
         <Logs />
         <GoalManager />
-        <ResetAll />
       </main>
     </div>
   );

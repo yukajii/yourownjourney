@@ -1,0 +1,71 @@
+/* -------------------------------------------------
+   Dark-theme overrides for Intro.js
+   ------------------------------------------------- */
+
+.introjs-overlay {
+  /* translucent charcoal instead of flat black */
+  background: rgba(14, 14, 17, 0.65);
+}
+
+/* ── tooltip container ─────────────────────────── */
+.introjs-tooltip.introjs-dark {
+  @apply bg-[color:var(--surface)] text-gray-200 border border-white/10 rounded-2xl shadow-2xl max-w-sm p-6 leading-relaxed;
+
+  /* subtle fade-in */
+  animation: introFade 0.25s ease;
+}
+
+@keyframes introFade {
+  from { opacity: 0; transform: scale(.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ── title & body text ─────────────────────────── */
+.introjs-tooltip-title {
+  @apply text-lg font-semibold mb-2 tracking-wide;
+}
+
+.introjs-tooltiptext {
+  @apply text-sm text-gray-300;
+}
+
+/* ── progress bar ──────────────────────────────── */
+.introjs-progress {
+  background: var(--accent) !important;          /* cyan */
+}
+.introjs-progressbar {
+  background: rgba(255,255,255,.08) !important;  /* faint track */
+}
+
+/* ── buttons & nav ─────────────────────────────── */
+.introjs-button {
+  /* copied from your .btn and .btn-blue rules */
+  @apply px-4 py-2 rounded-md font-medium
+         bg-sky-600 hover:bg-sky-700 text-white;
+}
+
+.introjs-disabled,
+.introjs-disabled:focus,
+.introjs-disabled:hover {
+  @apply opacity-40 cursor-not-allowed;
+}
+
+.introjs-prevbutton,
+.introjs-nextbutton,
+.introjs-skipbutton {
+  /* make nav buttons text-only, tucked under */
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  @apply text-sm font-medium text-gray-400 py-1;
+}
+
+ .introjs-nextbutton {
+   color: var(--accent);
+ }
+ .introjs-nextbutton:hover {
+   color: var(--accent-soft);
+ }
+
+ .introjs-prevbutton:hover   { color: #d1d5db; } /* tailwind gray-300 */
+ .introjs-skipbutton:hover   { color: #fb7185; } /* tailwind rose-400 */
