@@ -193,9 +193,19 @@ function updateSessionTimer() {
 function stopSession() {
   clearInterval(sessionInterval);
 
-  const secs = Math.floor((Date.now() - sessionStartTime) / 1000);
-  const note = prompt("What did you accomplish?");
+    const secs = Math.floor((Date.now() - sessionStartTime) / 1000);
 
+    /* ── 1️⃣ UI resets FIRST so it never appears “stuck” ───────── */
+    clearInterval(sessionInterval);
+    localStorage.removeItem("activeSession");
+    sessionTimer.textContent   = "00:00:00";
+    startStopBtn.textContent   = "Start";
+    bg.classList.remove("walking");
+    isSessionActive            = false;
+
+    const note = prompt("What did you accomplish?");
+
+    /* ── 2️⃣ Save log only after the UI was restored ───────────── */
   if (secs > 0) {
     const g = currentGoal();
     g.totalTime += secs;
@@ -206,16 +216,8 @@ function stopSession() {
     });
     saveGoals();                           // persist
   }
-
   renderLogs();
   updateGoalDisplay();
-
-  // reset UI
-  localStorage.removeItem("activeSession");
-  sessionTimer.textContent = "00:00:00";
-  startStopBtn.textContent = "Start";
-  bg.classList.remove("walking");
-  isSessionActive = false;
 }
 
 function resumeActiveSession() {
@@ -335,7 +337,11 @@ startStopBtn.addEventListener("click", toggleSession);
 goalSel.addEventListener("change", e => {
   currentGoalId = e.target.value;
   saveGoals();
-  refreshUI();
+
+  /* 3️⃣ Force an immediate log refresh so the new goal’s history shows up
+        even if it has 0 logs. */
+  refreshUI();            // still does selector + header + totals
+  renderLogs();           // makes sure the box updates
 });
 
 newGoalBtn.addEventListener("click", () => {
