@@ -1,37 +1,78 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 
-export function usePomodoro(focusMin = 25, breakMin = 5) {
-  const [phase, setPhase] = useState<'idle' | 'focus' | 'break'>('idle');
-  const [secLeft, setSecLeft] = useState(0);
+type Phase = "idle" | "focus" | "break";
 
-  useEffect(() => {
-    if (phase === 'idle') return;
-    const id = window.setInterval(() => {
-      setSecLeft(s => {
-        if (s <= 1) {
-          if (phase === 'focus') {
-            setPhase('break');
-            return breakMin * 60;
-          } else {
-            setPhase('idle');
-            return 0;
-          }
+export const usePomodoro = (
+  focusMinutes = 25,
+  breakMinutes = 5
+) => {
+  const [phase, setPhase] = useState<Phase>("idle");
+  const [secondsLeft, setSecondsLeft] = useState(0);
+  const timer = useRef<number | null>(null);
+
+  /* helpers */
+  const startTimer = (sec: number, nextPhase: Phase) => {
+    setSecondsLeft(sec);
+    clearInterval(timer.current!);
+    timer.current = window.setInterval(() => {
+      setSecondsLeft(prev => {
+        if (prev <= 1) {
+          clearInterval(timer.current!);
+          setPhase(nextPhase);
+          return nextPhase === "break"
+            ? breakMinutes * 60
+            : 0;
         }
-        return s - 1;
+        return prev - 1;
       });
     }, 1000);
-    return () => clearInterval(id);
-  }, [phase]);
+  };
 
+  /* API */
   const startFocus = () => {
-    setPhase('focus');
-    setSecLeft(focusMin * 60);
+    if (phase !== "idle") return;
+    setPhase("focus");
+    startTimer(focusMinutes * 60, "break");
   };
-  const startBreak = () => {
-    setPhase('break');
-    setSecLeft(breakMin * 60);
-  };
-  const stop = () => setPhase('idle');
 
-  return { phase, secLeft, startFocus, startBreak, stop };
-}
+  const takeBreak = () => {
+    if (phase !== "focus") return;
+    setPhase("break");
+    startTimer(breakMinutes * 60, "idle");
+  };
+
+  const backToWork = () => {
+    if (phase !== "break") return;
+    setPhase("focus");
+    startTimer(focusMinutes * 60, "break");
+  };
+
+  const stop = () => {
+    clearInterval(timer.current!);
+    setPhase("idle");
+    setSecondsLeft(0);
+  };
+
+  /* cleanup on unmount */
+  useEffect(() => {
+    return () => clearInterval(timer.current!);
+  }, []);
+
+  return {
+    phase,
+    secondsLeft,
+    startFocus,
+    takeBreak,
+    backToWork,
+    stop
+  };
+};
+
+/* pretty time */
+export const mmss = (s: number) => {
+  const m = Math.floor(s / 60)
+    .toString()
+    .padStart(2, "0");
+  const sec = (s % 60).toString().padStart(2, "0");
+  return `${m}:${sec}`;
+};

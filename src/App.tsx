@@ -6,6 +6,7 @@ import {
   Pomodoro,
   Logs,
   GoalManager,
+  ResetAll
 } from './components'; // barrel export once stubs are created
 
 const App: React.FC = () => {
@@ -19,6 +20,7 @@ const App: React.FC = () => {
         <Pomodoro />
         <Logs />
         <GoalManager />
+        <ResetAll />
       </main>
     </div>
   );
