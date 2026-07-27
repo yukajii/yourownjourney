@@ -6,6 +6,7 @@ export { default as LeaguesProgress }  from "./LeaguesProgress";
 export { default as Pomodoro }         from "./Pomodoro";
 export { default as Logs }             from "./Logs";
 export { default as GoalManager }      from "./GoalManager";
+export { default as ExportData }       from "./ExportData";
 export { default as ResetAll }         from "./ResetAll";
 export { default as InstallPrompt }    from "./InstallPrompt";
 export { default as UpdatePrompt }     from "./UpdatePrompt";
