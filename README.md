@@ -19,6 +19,7 @@ npm run dev        # http://localhost:5173
 | `npm run dev`     | dev server, with the service worker enabled      |
 | `npm run typecheck` | type-checks every project reference            |
 | `npm run lint`    | ESLint                                           |
+| `npm run test`    | Vitest, over the pure timer, tier and storage logic |
 | `npm run build`   | type-check, then produce `dist/`                 |
 | `npm run preview` | serve the production build locally               |
 
@@ -31,9 +32,11 @@ npm run build
 npx firebase deploy
 ```
 
-`firestore.rules` restricts `users/{uid}` to its owner. Deploy it at least
-once — a project left in test mode lets any signed-in account read every
-other account's goals.
+`firestore.rules` restricts `users/{uid}` and everything beneath it to its
+owner. Deploy it at least once — a project left in test mode lets any
+signed-in account read every other account's goals. The recursive wildcard in
+the rule is load-bearing: goals and logs are subcollections, and a rule on the
+user document alone does not reach them.
 
 ## How it is put together
 
@@ -57,12 +60,38 @@ off, so `useTicker` merely decides *when* to recompute and every value is
 derived from `Date.now()`. Reopening the app after an hour therefore shows the
 correct elapsed time rather than a countdown that stopped in your pocket.
 
+### Data layout
+
+```
+users/{uid}                              currentGoalId, schemaVersion
+users/{uid}/goals/{goalId}               name, totalTime, created
+users/{uid}/goals/{goalId}/logs/{logId}  timestamp, durationSec, note
+```
+
+Logs are a subcollection rather than an array on the user document. As one
+array they were rewritten in full on every change, so stopping a session
+re-uploaded the entire history, a device returning from offline could flush a
+stale whole-array write over anything logged elsewhere meanwhile, and the
+1 MiB document ceiling sat a few thousand logs away. Appending is now one
+small write plus an `increment()` on the goal's running total.
+
+`totalTime` is denormalised onto the goal so the progress bar and goal list
+never need the logs. Every write that touches a log moves it by exactly the
+difference, keeping it equal to the sum of the logs. Only the open goal's logs
+are fetched; export is the one place that needs them all, and it asks for them
+on demand.
+
+A user still on the old shape is migrated once, on first load. Log document
+ids are derived from the entry rather than random, so a run interrupted
+halfway can simply be repeated; the legacy array is deleted only after
+everything else has committed.
+
 ### Offline and sync
 
 Goals are written to `localStorage` synchronously and mirrored to Firestore in
 the background; nothing in the UI waits on the network. Firestore's
 IndexedDB cache queues writes made offline and flushes them on reconnect, and
-an `onSnapshot` subscription keeps a phone and a desktop in step. Signing in
+`onSnapshot` subscriptions keep a phone and a desktop in step. Signing in
 on a device that already has local-only history uploads it rather than
 replacing it with an empty cloud document.
 
