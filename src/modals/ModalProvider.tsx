@@ -25,6 +25,15 @@ interface ModalCtx {
   /** Resolves with the entered text, or null if dismissed. */
   prompt: (options: PromptOptions) => Promise<string | null>;
   confirm: (options: ConfirmOptions) => Promise<boolean>;
+  /**
+   * Opens an arbitrary form and resolves with whatever it passes to `done`,
+   * or with `cancelValue` if the user dismisses it. Backdrop click and Escape
+   * settle it like any other dialog.
+   */
+  custom: <T>(
+    render: (done: (value: T) => void) => React.ReactNode,
+    cancelValue: T
+  ) => Promise<T>;
 }
 
 const Ctx = createContext<ModalCtx | null>(null);
@@ -73,6 +82,7 @@ export const ModalProvider: React.FC<React.PropsWithChildren> = ({ children }) =
       openDialog<string | null>((done) => <PromptDialog options={options} done={done} />, null),
     confirm: (options) =>
       openDialog<boolean>((done) => <ConfirmDialog options={options} done={done} />, false),
+    custom: openDialog,
   };
 
   return (

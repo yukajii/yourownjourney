@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { fmt, mmss } from "./format";
+import {
+  fmt,
+  fromDateTimeInput,
+  humanDuration,
+  mmss,
+  toDateTimeInput,
+} from "./format";
 
 describe("fmt", () => {
   it("pads every field to two digits", () => {
@@ -41,5 +47,41 @@ describe("mmss", () => {
 
   it("clamps negatives to zero", () => {
     expect(mmss(-1)).toBe("00:00");
+  });
+});
+
+describe("datetime-local round trip", () => {
+  it("produces the control's format", () => {
+    // Built from local parts, so this holds in whatever zone the test runs in.
+    const local = new Date(2026, 2, 9, 7, 5).getTime();
+    expect(toDateTimeInput(local)).toBe("2026-03-09T07:05");
+  });
+
+  it("survives a round trip to the minute", () => {
+    const original = new Date(2026, 6, 27, 14, 30).getTime();
+    expect(fromDateTimeInput(toDateTimeInput(original))).toBe(original);
+  });
+
+  it("reads back the wall-clock time that was written, not a UTC-shifted one", () => {
+    const parsed = fromDateTimeInput("2026-01-15T09:00")!;
+    const d = new Date(parsed);
+    expect(d.getHours()).toBe(9);
+    expect(d.getDate()).toBe(15);
+  });
+
+  it("rejects anything the control could not have produced", () => {
+    expect(fromDateTimeInput("")).toBeNull();
+    expect(fromDateTimeInput("not a date")).toBeNull();
+    expect(fromDateTimeInput("2026-01-15")).toBeNull();
+    expect(fromDateTimeInput("2026-01-15T09:00:00")).toBeNull();
+  });
+});
+
+describe("humanDuration", () => {
+  it("reads as hours and minutes", () => {
+    expect(humanDuration(5400)).toBe("1h 30m");
+    expect(humanDuration(3600)).toBe("1h");
+    expect(humanDuration(1800)).toBe("30m");
+    expect(humanDuration(0)).toBe("0m");
   });
 });
