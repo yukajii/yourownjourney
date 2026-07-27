@@ -10,10 +10,8 @@ const when = (ts: number) =>
   });
 
 const Logs = () => {
-  const { current } = useGoals();
+  const { current, logs } = useGoals();
   if (!current) return null;
-
-  const logs = [...current.logs].sort((a, b) => b.timestamp - a.timestamp); // newest first
 
   return (
     <section id="logs-section" className="card flex flex-col gap-3">
@@ -28,10 +26,9 @@ const Logs = () => {
         <p className="text-sm text-gray-400">No logs yet. Start walking!</p>
       ) : (
         <ol className="-mx-1 max-h-72 space-y-1 overflow-y-auto">
-          {logs.map((l, i) => (
-            // Timestamps are near-unique but not guaranteed, so pair with the index.
+          {logs.map((l) => (
             <li
-              key={`${l.timestamp}-${i}`}
+              key={l.id}
               className="rounded px-3 py-1.5 text-sm odd:bg-[color:var(--surface-alt)]"
             >
               <div className="flex justify-between gap-3">

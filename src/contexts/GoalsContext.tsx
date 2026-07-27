@@ -1,6 +1,7 @@
-import { doc, onSnapshot, setDoc, type DocumentReference } from "firebase/firestore";
+import { getDoc, getDocs, onSnapshot, orderBy, query, setDoc } from "firebase/firestore";
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useRef,
@@ -8,19 +9,35 @@ import {
   type ReactNode,
 } from "react";
 import { useAuth } from "./AuthContext";
-import type { Goal } from "../models";
-import { db } from "../firebase";
-
-/* ───────────── LocalStorage keys ───────────── */
-const LS_GOALS = "leagues_goals";
-const LS_CURRENT = "leagues_currentGoalId";
-const LS_ACTIVE_SESSION = "leagues_activeSession";
+import { newId, SCHEMA_VERSION, type Goal, type Log } from "../models";
+import {
+  clearAll,
+  readAll,
+  sortLogs,
+  writeAll,
+  type LocalSnapshot,
+} from "../storage/localStore";
+import {
+  addRemoteLog,
+  deleteEverything,
+  deleteRemoteGoal,
+  deleteRemoteLog,
+  goalRef,
+  goalsRef,
+  logsRef,
+  migrateLegacyDoc,
+  updateRemoteLog,
+  uploadSnapshot,
+  userRef,
+} from "../storage/remoteStore";
 
 /* ───────────── Context shape ───────────── */
 type GoalsCtx = {
   goals: Goal[];
   currentGoalId: string | null;
   current: Goal | null;
+  /** Logs for the current goal, newest first. */
+  logs: Log[];
   /** True until the first read (local or remote) has settled. */
   loading: boolean;
   createGoal: (name: string) => void;
@@ -29,6 +46,12 @@ type GoalsCtx = {
   setCurrentGoal: (id: string) => void;
   /** Logs against `goalId` if given, so a session survives switching goals. */
   pushLog: (durationSec: number, note: string, goalId?: string) => void;
+  /** Records time that was never timed — a session the user forgot to start. */
+  addLog: (timestamp: number, durationSec: number, note: string, goalId?: string) => void;
+  editLog: (log: Log) => void;
+  removeLog: (log: Log) => void;
+  /** Every log for every goal. Fetched on demand; only export needs it. */
+  loadAllLogs: () => Promise<Record<string, Log[]>>;
   resetAll: () => Promise<void>;
 };
 
@@ -39,173 +62,299 @@ export const useGoals = () => {
   return ctx;
 };
 
-/* ───────────── LocalStorage helpers ───────────── */
-type Stored = { goals: Goal[]; currentGoalId: string | null };
-
-const readLocal = (): Stored => {
-  try {
-    const goals = JSON.parse(localStorage.getItem(LS_GOALS) ?? "[]") as Goal[];
-    if (!Array.isArray(goals)) return { goals: [], currentGoalId: null };
-    const stored = localStorage.getItem(LS_CURRENT);
-    // A stale pointer to a deleted goal would render an empty header forever.
-    const currentGoalId = goals.some((g) => g.id === stored)
-      ? stored
-      : goals[0]?.id ?? null;
-    return { goals, currentGoalId };
-  } catch {
-    return { goals: [], currentGoalId: null };
-  }
-};
-
-const writeLocal = ({ goals, currentGoalId }: Stored) => {
-  localStorage.setItem(LS_GOALS, JSON.stringify(goals));
-  if (currentGoalId) localStorage.setItem(LS_CURRENT, currentGoalId);
-  else localStorage.removeItem(LS_CURRENT);
-};
+const newest = (logs: Log[]) => [...logs].sort((a, b) => b.timestamp - a.timestamp);
 
 /* ───────────── Provider ───────────── */
 export const GoalsProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
+  const uid = user?.uid ?? null;
 
   const [goals, setGoals] = useState<Goal[]>([]);
   const [currentGoalId, setCurrentGoalId] = useState<string | null>(null);
+  const [logs, setLogs] = useState<Log[]>([]);
   const [loading, setLoading] = useState(true);
 
-  /** Guards the one-time local→cloud adoption so a reset can't resurrect data. */
-  const migratedFor = useRef<string | null>(null);
+  /**
+   * Signed-out, this device holds everything. Signed in it is still written,
+   * so signing out does not appear to erase the journey.
+   */
+  const localRef = useRef<LocalSnapshot>({ goals: [], logsByGoal: {}, currentGoalId: null });
 
-  const userDoc = (uid: string): DocumentReference => doc(db, "users", uid);
+  /** Guards the one-time local→cloud adoption so a reset cannot resurrect data. */
+  const reconciledFor = useRef<string | null>(null);
 
-  /* ---------- load, and stay subscribed while signed in ---------- */
+  const persistLocal = useCallback((next: LocalSnapshot) => {
+    localRef.current = next;
+    writeAll(localStorage, next);
+  }, []);
+
+  /* ---------- load ---------- */
   useEffect(() => {
-    if (!user) {
-      const local = readLocal();
+    // Local first and synchronously: the app is usable before the network is,
+    // and an installed PWA is frequently opened with no connection at all.
+    const local = readAll(localStorage);
+    localRef.current = local;
+
+    if (!uid) {
       setGoals(local.goals);
       setCurrentGoalId(local.currentGoalId);
+      setLogs(newest(local.logsByGoal[local.currentGoalId ?? ""] ?? []));
       setLoading(false);
       return;
     }
 
-    setLoading(true);
-    const ref = userDoc(user.uid);
+    setGoals(local.goals);
+    setCurrentGoalId(local.currentGoalId);
+    setLoading(false);
 
-    const unsub = onSnapshot(
-      ref,
-      (snap) => {
-        const remote = snap.data() as Partial<Stored> | undefined;
-        const remoteGoals = Array.isArray(remote?.goals) ? remote.goals : [];
+    let cancelled = false;
+    const unsubs: (() => void)[] = [];
 
-        /* First sign-in on a device that already has offline history: adopt it
-           rather than silently replacing it with an empty cloud document. */
-        if (remoteGoals.length === 0 && migratedFor.current !== user.uid) {
-          migratedFor.current = user.uid;
-          const local = readLocal();
-          if (local.goals.length > 0) {
-            setGoals(local.goals);
-            setCurrentGoalId(local.currentGoalId);
-            setLoading(false);
-            void setDoc(ref, local, { merge: true }).catch((e) =>
-              console.error("Could not upload local goals", e)
-            );
-            return;
+    void (async () => {
+      /* One-time reconciliation before subscribing, so the subscriptions do
+         not race the migration and briefly report an empty journey. */
+      if (reconciledFor.current !== uid) {
+        reconciledFor.current = uid;
+        try {
+          const snap = await getDoc(userRef(uid));
+          const migrated = await migrateLegacyDoc(uid, snap.data());
+
+          if (!migrated) {
+            const remote = await getDocs(goalsRef(uid));
+            // First sign-in on a device that already has offline history:
+            // adopt it rather than replacing it with an empty cloud document.
+            if (remote.empty && localRef.current.goals.length > 0) {
+              const { goals: g, logsByGoal, currentGoalId: c } = localRef.current;
+              await uploadSnapshot(uid, g, logsByGoal, c);
+            } else if (!snap.exists()) {
+              await setDoc(userRef(uid), { currentGoalId: null, schemaVersion: SCHEMA_VERSION });
+            }
           }
+        } catch (e) {
+          // Offline, or rules rejected us. The local copy still drives the UI.
+          console.error("Could not reconcile with the cloud", e);
         }
-
-        migratedFor.current = user.uid;
-        const nextCurrent = remoteGoals.some((g) => g.id === remote?.currentGoalId)
-          ? remote!.currentGoalId!
-          : remoteGoals[0]?.id ?? null;
-
-        setGoals(remoteGoals);
-        setCurrentGoalId(nextCurrent);
-        writeLocal({ goals: remoteGoals, currentGoalId: nextCurrent });
-        setLoading(false);
-      },
-      (err) => {
-        // Rules rejection, or an unreachable backend with a cold cache.
-        console.error("Goal sync failed, falling back to this device", err);
-        const local = readLocal();
-        setGoals(local.goals);
-        setCurrentGoalId(local.currentGoalId);
-        setLoading(false);
       }
+
+      if (cancelled) return;
+
+      unsubs.push(
+        onSnapshot(
+          userRef(uid),
+          (snap) => setCurrentGoalId((prev) => (snap.data()?.currentGoalId as string) ?? prev),
+          (e) => console.error("Could not follow the current goal", e)
+        )
+      );
+
+      unsubs.push(
+        onSnapshot(
+          goalsRef(uid),
+          (snap) => {
+            const next = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Goal);
+            setGoals(next);
+            // Mirror to this device so a later offline launch is not empty.
+            persistLocal({ ...localRef.current, goals: next });
+          },
+          (e) => console.error("Goal sync failed, falling back to this device", e)
+        )
+      );
+    })();
+
+    return () => {
+      cancelled = true;
+      for (const u of unsubs) u();
+    };
+  }, [uid, persistLocal]);
+
+  /* ---------- logs for the current goal ---------- */
+  useEffect(() => {
+    if (!currentGoalId) {
+      setLogs([]);
+      return;
+    }
+
+    if (!uid) {
+      setLogs(newest(localRef.current.logsByGoal[currentGoalId] ?? []));
+      return;
+    }
+
+    // Only the open goal's logs are fetched; the rest stay in the cloud until
+    // they are actually needed.
+    return onSnapshot(
+      query(logsRef(uid, currentGoalId), orderBy("timestamp", "desc")),
+      (snap) => {
+        const next = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Log);
+        setLogs(next);
+        persistLocal({
+          ...localRef.current,
+          logsByGoal: { ...localRef.current.logsByGoal, [currentGoalId]: sortLogs(next) },
+        });
+      },
+      (e) => console.error("Log sync failed, falling back to this device", e)
     );
+  }, [uid, currentGoalId, persistLocal]);
 
-    return unsub;
-  }, [user]);
-
-  /* ---------- persistence ---------- */
-  const persist = (nextGoals: Goal[], nextCurrent: string | null) => {
+  /* ---------- goal writes ---------- */
+  const writeGoals = (nextGoals: Goal[], nextCurrent: string | null) => {
     setGoals(nextGoals);
     setCurrentGoalId(nextCurrent);
-    // Local first and synchronously: with the offline cache enabled the
-    // Firestore promise does not settle until the server acknowledges, so
-    // awaiting it would stall every edit made without a connection.
-    writeLocal({ goals: nextGoals, currentGoalId: nextCurrent });
-
-    if (user) {
-      void setDoc(
-        userDoc(user.uid),
-        { goals: nextGoals, currentGoalId: nextCurrent },
-        { merge: true }
-      ).catch((e) => console.error("Could not sync goals", e));
-    }
+    persistLocal({ ...localRef.current, goals: nextGoals, currentGoalId: nextCurrent });
   };
 
-  /* ---------- CRUD ---------- */
   const createGoal = (name: string) => {
-    const newGoal: Goal = {
-      id:
-        globalThis.crypto?.randomUUID?.() ??
-        `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-      name,
+    const goal: Goal = { id: newId(), name, totalTime: 0, created: Date.now() };
+    const nextGoals = [...goals, goal];
+
+    setGoals(nextGoals);
+    setCurrentGoalId(goal.id);
+    persistLocal({
+      goals: nextGoals,
+      currentGoalId: goal.id,
+      logsByGoal: { ...localRef.current.logsByGoal, [goal.id]: [] },
+    });
+
+    if (!uid) return;
+    // Not awaited: with the offline cache a write does not settle until the
+    // server acknowledges it, so awaiting would stall every edit made on a train.
+    void setDoc(goalRef(uid, goal.id), {
+      name: goal.name,
       totalTime: 0,
-      logs: [],
-      created: Date.now(),
-    };
-    persist([...goals, newGoal], newGoal.id);
+      created: goal.created,
+    }).catch((e) => console.error("Could not sync new goal", e));
+    void setDoc(userRef(uid), { currentGoalId: goal.id }, { merge: true }).catch(() => {});
   };
 
-  const renameGoal = (id: string, name: string) =>
-    persist(goals.map((g) => (g.id === id ? { ...g, name } : g)), currentGoalId);
+  const renameGoal = (id: string, name: string) => {
+    writeGoals(goals.map((g) => (g.id === id ? { ...g, name } : g)), currentGoalId);
+    if (!uid) return;
+    void setDoc(goalRef(uid, id), { name }, { merge: true }).catch((e) =>
+      console.error("Could not sync rename", e)
+    );
+  };
 
   const deleteGoal = (id: string) => {
     const filtered = goals.filter((g) => g.id !== id);
     if (filtered.length === goals.length) return;
-    persist(filtered, currentGoalId === id ? filtered[0]?.id ?? null : currentGoalId);
+
+    const nextCurrent = currentGoalId === id ? filtered[0]?.id ?? null : currentGoalId;
+    const restLogs = { ...localRef.current.logsByGoal };
+    delete restLogs[id];
+    setGoals(filtered);
+    setCurrentGoalId(nextCurrent);
+    persistLocal({ goals: filtered, logsByGoal: restLogs, currentGoalId: nextCurrent });
+
+    if (!uid) return;
+    void deleteRemoteGoal(uid, id).catch((e) => console.error("Could not delete goal", e));
+    void setDoc(userRef(uid), { currentGoalId: nextCurrent }, { merge: true }).catch(() => {});
   };
 
-  const setCurrentGoal = (id: string) => persist(goals, id);
-
-  const pushLog = (durationSec: number, note: string, goalId?: string) => {
-    const target = goalId ?? currentGoalId;
-    if (!target || durationSec <= 0) return;
-    if (!goals.some((g) => g.id === target)) return; // goal deleted mid-session
-
-    persist(
-      goals.map((g) =>
-        g.id === target
-          ? {
-              ...g,
-              totalTime: g.totalTime + durationSec,
-              logs: [...g.logs, { timestamp: Date.now(), durationSec, note }],
-            }
-          : g
-      ),
-      currentGoalId
+  const setCurrentGoal = (id: string) => {
+    writeGoals(goals, id);
+    if (!uid) return;
+    void setDoc(userRef(uid), { currentGoalId: id }, { merge: true }).catch((e) =>
+      console.error("Could not sync current goal", e)
     );
   };
 
+  /* ---------- log writes ---------- */
+  const applyLogChange = (goalId: string, nextLogs: Log[], deltaSec: number) => {
+    const nextGoals = goals.map((g) =>
+      g.id === goalId ? { ...g, totalTime: Math.max(0, g.totalTime + deltaSec) } : g
+    );
+    setGoals(nextGoals);
+    if (goalId === currentGoalId) setLogs(newest(nextLogs));
+
+    persistLocal({
+      ...localRef.current,
+      goals: nextGoals,
+      logsByGoal: { ...localRef.current.logsByGoal, [goalId]: sortLogs(nextLogs) },
+    });
+  };
+
+  const insert = (timestamp: number, durationSec: number, note: string, goalId?: string) => {
+    const target = goalId ?? currentGoalId;
+    const seconds = Math.max(0, Math.round(durationSec));
+    if (!target || seconds <= 0) return;
+    if (!goals.some((g) => g.id === target)) return; // goal deleted mid-session
+
+    const log: Log = { id: newId(), timestamp, durationSec: seconds, note };
+    const existing = localRef.current.logsByGoal[target] ?? [];
+    applyLogChange(target, [...existing, log], seconds);
+
+    if (!uid) return;
+    void addRemoteLog(uid, target, log).catch((e) => console.error("Could not sync log", e));
+  };
+
+  const pushLog = (durationSec: number, note: string, goalId?: string) =>
+    insert(Date.now(), durationSec, note, goalId);
+
+  const addLog = (timestamp: number, durationSec: number, note: string, goalId?: string) =>
+    insert(timestamp, durationSec, note, goalId);
+
+  const editLog = (log: Log) => {
+    const target = currentGoalId;
+    if (!target) return;
+
+    const existing = localRef.current.logsByGoal[target] ?? [];
+    const previous = existing.find((l) => l.id === log.id);
+    if (!previous) return;
+
+    const seconds = Math.max(0, Math.round(log.durationSec));
+    const next = { ...log, durationSec: seconds };
+    applyLogChange(
+      target,
+      existing.map((l) => (l.id === log.id ? next : l)),
+      seconds - previous.durationSec
+    );
+
+    if (!uid) return;
+    void updateRemoteLog(uid, target, next, previous.durationSec).catch((e) =>
+      console.error("Could not sync edit", e)
+    );
+  };
+
+  const removeLog = (log: Log) => {
+    const target = currentGoalId;
+    if (!target) return;
+
+    const existing = localRef.current.logsByGoal[target] ?? [];
+    if (!existing.some((l) => l.id === log.id)) return;
+
+    applyLogChange(
+      target,
+      existing.filter((l) => l.id !== log.id),
+      -log.durationSec
+    );
+
+    if (!uid) return;
+    void deleteRemoteLog(uid, target, log).catch((e) =>
+      console.error("Could not sync deletion", e)
+    );
+  };
+
+  /* ---------- bulk read ---------- */
+  const loadAllLogs = useCallback(async (): Promise<Record<string, Log[]>> => {
+    if (!uid) return localRef.current.logsByGoal;
+
+    const out: Record<string, Log[]> = {};
+    for (const goal of goals) {
+      const snap = await getDocs(query(logsRef(uid, goal.id), orderBy("timestamp", "asc")));
+      out[goal.id] = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Log);
+    }
+    return out;
+  }, [uid, goals]);
+
+  /* ---------- reset ---------- */
   const resetAll = async () => {
-    localStorage.removeItem(LS_GOALS);
-    localStorage.removeItem(LS_CURRENT);
-    localStorage.removeItem(LS_ACTIVE_SESSION);
+    clearAll(localStorage);
+    localRef.current = { goals: [], logsByGoal: {}, currentGoalId: null };
     setGoals([]);
     setCurrentGoalId(null);
+    setLogs([]);
 
-    if (user) {
-      migratedFor.current = user.uid; // do not re-adopt the data we just cleared
-      await setDoc(userDoc(user.uid), { goals: [], currentGoalId: null });
+    if (uid) {
+      reconciledFor.current = uid; // do not re-adopt the data we just cleared
+      await deleteEverything(uid);
     }
   };
 
@@ -213,12 +362,17 @@ export const GoalsProvider = ({ children }: { children: ReactNode }) => {
     goals,
     currentGoalId,
     current: goals.find((g) => g.id === currentGoalId) ?? null,
+    logs,
     loading,
     createGoal,
     renameGoal,
     deleteGoal,
     setCurrentGoal,
     pushLog,
+    addLog,
+    editLog,
+    removeLog,
+    loadAllLogs,
     resetAll,
   };
 

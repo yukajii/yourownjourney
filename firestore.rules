@@ -3,9 +3,11 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Each signed-in person owns exactly one document, keyed by their uid.
-    // Nothing else in the project is reachable from the client.
-    match /users/{uid} {
+    // Each signed-in person owns exactly one document tree, keyed by their uid.
+    //
+    // The recursive wildcard matters: goals and their logs are subcollections,
+    // and a rule on /users/{uid} alone does not reach them.
+    match /users/{uid}/{document=**} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
     }
 
