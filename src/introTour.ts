@@ -1,6 +1,12 @@
-import introJs from 'intro.js';
-import 'intro.js/introjs.css';
-import './introjs-dark.css';
+import type introJsModule from 'intro.js';
+
+/*
+ * intro.js and its stylesheets are ~100 KB that all but the very first visit
+ * will never need, so they are pulled in on demand rather than shipped in the
+ * main bundle.
+ */
+type IntroJs = typeof introJsModule;
+type Tour = ReturnType<IntroJs['tour']>;
 
 const TOUR_KEY = 'leagues_has_seen_intro';
 let   tourRunning = false;
@@ -25,7 +31,7 @@ function waitFor(sel: string, timeout = 1500): Promise<void> {
 }
 
 /* helper: force Intro.js to recalc positions */
-function refreshSoon(tour: ReturnType<typeof introJs.tour>) {
+function refreshSoon(tour: Tour) {
   requestAnimationFrame(() => tour.refresh());
 }
 
@@ -37,6 +43,13 @@ export async function maybeRunIntroTour() {
   for (const sel of STATIC_TARGETS) await waitFor(sel, 1000);
 
   tourRunning = true;
+
+  const [{ default: introJs }] = await Promise.all([
+    import('intro.js'),
+    import('intro.js/introjs.css'),
+    import('./introjs-dark.css'),
+  ]);
+
   const tour = introJs.tour();
 
   tour.setOptions({
@@ -94,7 +107,7 @@ export async function maybeRunIntroTour() {
   /* ── before each step: make sure element exists, then refresh ── */
   tour.onbeforechange(async (el) => {
     const sel = el?.getAttribute?.('id');
-    if (!sel) return;
+    if (!sel) return true;
 
     /* wait for element if it might appear later (logs-section) */
     if (sel === 'logs-section') {
@@ -105,6 +118,7 @@ export async function maybeRunIntroTour() {
       }
     }
     refreshSoon(tour);
+    return true;
   });
 
   /* ── cleanup & flag ──────────────────────────────────────────── */

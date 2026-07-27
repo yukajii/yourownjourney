@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# vite-plugin-pwa's dev-mode service worker output
+dev-dist
+
+# Firebase CLI
+.firebase
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

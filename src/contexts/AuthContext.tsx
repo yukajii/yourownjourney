@@ -1,17 +1,22 @@
 import {
-  getAuth,
   GoogleAuthProvider,
-  signInWithPopup,
-  signOut as fbSignOut,
+  getRedirectResult,
   onAuthStateChanged,
-  type User
+  signInWithPopup,
+  signInWithRedirect,
+  signOut as fbSignOut,
+  type User,
 } from "firebase/auth";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { app } from "../firebase";           // the initialized Firebase app
+import { auth } from "../firebase";
 
 /* ---------- Context shape ---------- */
 type AuthCtx = {
   user: User | null;
+  /** True until Firebase reports the initial auth state. */
+  loading: boolean;
+  /** Last sign-in failure, for display; cleared on the next attempt. */
+  error: string | null;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -23,27 +28,72 @@ export const useAuth = () => {
   return ctx;
 };
 
+/** Errors that mean "this browser won't give us a popup" rather than "no". */
+const POPUP_UNAVAILABLE = new Set([
+  "auth/popup-blocked",
+  "auth/operation-not-supported-in-this-environment",
+  "auth/web-storage-unsupported",
+]);
+
+/** Errors the user caused on purpose — not worth surfacing as a failure. */
+const USER_ABORTED = new Set([
+  "auth/popup-closed-by-user",
+  "auth/cancelled-popup-request",
+]);
+
+const codeOf = (e: unknown) =>
+  typeof e === "object" && e !== null && "code" in e ? String((e as { code: unknown }).code) : "";
+
 /* ---------- Provider ---------- */
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const auth = getAuth(app);                // getAuth used now → no TS6133
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  /* listen to Firebase auth */
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, setUser);
-    return () => unsub();
-  }, [auth]);
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      setLoading(false);
+    });
 
-  /* helpers exposed to UI */
+    // Collects the result when we had to fall back to a full-page redirect.
+    void getRedirectResult(auth).catch((e) => {
+      if (!USER_ABORTED.has(codeOf(e))) setError("Sign-in failed. Please try again.");
+    });
+
+    return unsub;
+  }, []);
+
   const signInWithGoogle = async () => {
+    setError(null);
     const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
+
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (e) {
+      const code = codeOf(e);
+      if (USER_ABORTED.has(code)) return;
+
+      if (POPUP_UNAVAILABLE.has(code)) {
+        // Installed PWAs and locked-down mobile browsers often refuse popups.
+        await signInWithRedirect(auth, provider);
+        return;
+      }
+
+      console.error("Sign-in failed", e);
+      setError(
+        code === "auth/network-request-failed"
+          ? "You appear to be offline. Your progress is still saved on this device."
+          : "Sign-in failed. Please try again."
+      );
+    }
   };
 
   const signOut = async () => {
+    setError(null);
     await fbSignOut(auth);
   };
 
-  const value: AuthCtx = { user, signInWithGoogle, signOut };
+  const value: AuthCtx = { user, loading, error, signInWithGoogle, signOut };
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

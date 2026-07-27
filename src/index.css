@@ -9,21 +9,37 @@
   --surface-alt: #22222a;
   --accent: #41d1ff;
   --accent-soft: #1368d6;
+  color-scheme: dark;
+}
+
+html {
+  /* Stops the whole app rubber-banding like a web page when installed. */
+  overscroll-behavior-y: none;
+  background-color: var(--bg);
 }
 
 body {
   @apply bg-[color:var(--bg)] text-gray-200 antialiased;
+  /* Fills the notch/rounded-corner area behind the status bar on Android. */
+  min-height: 100dvh;
 }
 
 .card {
   @apply bg-[color:var(--surface)] rounded-xl p-5 border border-white/10 shadow-md;
 }
 
-.btn { @apply px-4 py-2 rounded-md font-medium; }
+.btn { @apply px-4 py-2 rounded-md font-medium transition-colors; }
+.btn:disabled { @apply cursor-not-allowed opacity-40; }
 .btn-green  { @apply bg-emerald-600 hover:bg-emerald-700 text-white; }
 .btn-red    { @apply bg-red-600     hover:bg-red-700     text-white; }
 .btn-blue   { @apply bg-sky-600     hover:bg-sky-700     text-white; }
 .btn-outline{ @apply bg-transparent border border-white/20 hover:bg-white/10; }
+
+/* Keyboard focus must stay visible now that buttons drop the default ring. */
+.btn:focus-visible,
+select:focus-visible {
+  @apply outline-none ring-2 ring-[color:var(--accent)] ring-offset-2 ring-offset-[color:var(--bg)];
+}
 
 @keyframes barPulse {
   0%,100% { opacity:1; transform:scaleY(1);}
@@ -31,14 +47,9 @@ body {
 }
 .running-pulse { animation: barPulse 2s ease-in-out infinite; }
 
-/* ----- horizontal walking strip animation ----- */
-@keyframes walkScroll {
-  from { transform: translateX(0); }
-  to   { transform: translateX(100%); }   /* move container width right */
-}
-
-.walker-strip {
-  animation-name: walkScroll;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
+@media (prefers-reduced-motion: reduce) {
+  .running-pulse,
+  .animate-pulse {
+    animation: none;
+  }
 }
