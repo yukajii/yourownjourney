@@ -7,7 +7,7 @@ import mentorImg from "../assets/stoic-mentor.png";
  * grounded in classical Stoic thought.
  *
  * • Anchored bottom‑right so it never obscures core UI.
- * • Cycles through short quotes / nudges every 15 s.
+ * • Cycles through short quotes / nudges every 15 s.
  * • Uses Tailwind + your CSS vars (surface, accent, etc.) so theme is inherited.
  * • `#stoic-mentor` is spotlighted as the final step of the Intro.js tour.
  */

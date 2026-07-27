@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { usePomodoro, mmss } from "../hooks/usePomodoro";
+import { usePomodoro } from "../hooks/usePomodoro";
+import { mmss } from "../format";
 
 const PHASE_LABEL = {
   idle: "Ready when you are",

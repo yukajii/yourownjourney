@@ -1,6 +1,6 @@
 import { useGoals } from "../contexts/GoalsContext";
 import { useSession } from "../contexts/SessionContext";
-import { TIERS } from "../models";
+import { tierProgress } from "../leagues";
 
 /** gradient colours */
 const BG = "from-cyan-300/20 to-cyan-500/20";
@@ -12,11 +12,9 @@ const LeaguesProgress = () => {
   if (!current) return null;
 
   // Count the running session so the bar advances live.
-  const leagues = (current.totalTime + (isActive ? seconds : 0)) / 3600;
-  const nextTier = TIERS.find((t) => t > leagues) ?? TIERS.at(-1)!;
-  const prevTier = [...TIERS].reverse().find((t) => t <= leagues) ?? 0;
-  const pct =
-    nextTier <= prevTier ? 100 : ((leagues - prevTier) / (nextTier - prevTier)) * 100;
+  const { leagues, nextTier, pct } = tierProgress(
+    current.totalTime + (isActive ? seconds : 0)
+  );
 
   return (
     <section id="leagues-progress" className="card flex flex-col gap-4">

@@ -120,9 +120,3 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 };
-
-/** hh:mm:ss */
-export const fmt = (s: number) => {
-  const pad = (n: number) => n.toString().padStart(2, "0");
-  return `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
-};

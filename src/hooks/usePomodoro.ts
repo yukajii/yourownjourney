@@ -6,7 +6,7 @@ import { useTicker } from "./useTicker";
 type Phase = "idle" | "focus" | "break";
 
 /** A phase is described by its deadline, never by a tick count. */
-type PomoState = { phase: Phase; endsAt: number };
+export type PomoState = { phase: Phase; endsAt: number };
 
 const LS_STATE = "leagues_pomodoro";
 const LS_SETTINGS = "leagues_pomodoroSettings";
@@ -15,7 +15,7 @@ export const DEFAULT_SETTINGS: Settings = { pomodoroMinutes: 25, breakMinutes: 5
 
 const IDLE: PomoState = { phase: "idle", endsAt: 0 };
 
-const clampMinutes = (value: unknown, fallback: number) =>
+export const clampMinutes = (value: unknown, fallback: number) =>
   typeof value === "number" && Number.isFinite(value)
     ? Math.min(180, Math.max(1, Math.round(value)))
     : fallback;
@@ -38,7 +38,7 @@ const readSettings = (): Settings => {
  * Replays phases that expired while the app was closed, so relaunching an hour
  * later lands in the right place instead of resuming a stale countdown.
  */
-const catchUp = (state: PomoState, breakMs: number): PomoState => {
+export const catchUp = (state: PomoState, breakMs: number): PomoState => {
   let cur = state;
   while (cur.phase !== "idle" && cur.endsAt <= Date.now()) {
     cur = cur.phase === "focus" ? { phase: "break", endsAt: cur.endsAt + breakMs } : IDLE;
@@ -118,10 +118,4 @@ export const usePomodoro = () => {
     backToWork: startFocus,
     stop,
   };
-};
-
-/** mm:ss */
-export const mmss = (s: number) => {
-  const m = Math.floor(s / 60).toString().padStart(2, "0");
-  return `${m}:${(s % 60).toString().padStart(2, "0")}`;
 };

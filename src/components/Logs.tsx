@@ -1,5 +1,5 @@
 import { useGoals } from "../contexts/GoalsContext";
-import { fmt } from "../contexts/SessionContext";
+import { fmt } from "../format";
 
 const when = (ts: number) =>
   new Date(ts).toLocaleString(undefined, {

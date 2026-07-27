@@ -1,5 +1,6 @@
 import React from "react";
-import { useSession, fmt } from "../contexts/SessionContext";
+import { useSession } from "../contexts/SessionContext";
+import { fmt } from "../format";
 import { useGoals } from "../contexts/GoalsContext";
 import { useModal } from "../modals/ModalProvider";
 import FootstepStrip from "./FootstepStrip";
