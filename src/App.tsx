@@ -9,6 +9,7 @@ import {
 } from './components'; // barrel export once stubs are created
 import { maybeRunIntroTour } from './introTour';
 import React, { useEffect } from 'react';
+import { StoicMentor } from './components';
 
 const App: React.FC = () => {
   useEffect(() => {
@@ -25,6 +26,7 @@ const App: React.FC = () => {
         <Logs />
         <GoalManager />
       </main>
+    <StoicMentor />   {/* anchored bottom-right */}
     </div>
   );
 };

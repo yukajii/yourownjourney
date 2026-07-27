@@ -1,119 +1,67 @@
-import introJs from 'intro.js';
-import 'intro.js/introjs.css';
-import './introjs-dark.css';
+// ──────────────────────────────────────────────────────────
+//  Intro.js first-run tour with mentor portrait in tooltip
+// ──────────────────────────────────────────────────────────
+import introJs from "intro.js";
+import "intro.js/introjs.css";
+import "./introjs-dark.css";          // your dark skin
+import "./guruTooltip.css";           // layout for avatar + text
 
-const TOUR_KEY = 'leagues_has_seen_intro';
-let   tourRunning = false;
+// local asset → Vite gives a hashed URL at runtime
+import mentorImg from "./assets/stoic-mentor.png";
 
-/* selectors that exist from first render */
-const STATIC_TARGETS = [
-  '#goal-manager',
-  '#session-timer',
-  '#pomodoro-section',
-];
+/* ---------- tooltip HTML template ---------- */
+const tpl = /* html */ `
+  <div class="introjs-tooltip guru-tooltip">
+    <a class="introjs-skipbutton introjs-exitbutton" role="button" aria-label="Close">×</a>
 
-/* helper: wait until an element appears */
-function waitFor(sel: string, timeout = 1500): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const t0 = Date.now();
-    (function check() {
-      if (document.querySelector(sel)) return resolve();
-      if (Date.now() - t0 > timeout)    return reject();
-      requestAnimationFrame(check);
-    })();
-  });
-}
+    <h4 class="introjs-tooltip-title"></h4>
 
-/* helper: force Intro.js to recalc positions */
-function refreshSoon(tour: ReturnType<typeof introJs.tour>) {
-  requestAnimationFrame(() => tour.refresh());
-}
+    <div class="mentor-row">
+      <img src="${mentorImg}" class="mentor-avatar" />
+      <div class="introjs-tooltiptext"></div>
+    </div>
 
-export async function maybeRunIntroTour() {
-  if (tourRunning) return;
-  if (localStorage.getItem(TOUR_KEY)) return;
+    <div class="introjs-progress"></div>
+    <div class="introjs-tooltipbuttons"></div>
+  </div>
+`;
 
-  /* wait for initial DOM (should be immediate) */
-  for (const sel of STATIC_TARGETS) await waitFor(sel, 1000);
+/* ---------- helper: run only on first visit ---------- */
+export const maybeRunIntroTour = (): void => {
+  if (localStorage.getItem("leagues_seenTour") === "1") return;
 
-  tourRunning = true;
-  const tour = introJs.tour();
+  const intro = introJs();
 
-  tour.setOptions({
-    tooltipClass: 'introjs-dark',
-    overlayOpacity: 0.65,
-    showProgress: true,
-    showBullets: false,
-    scrollToElement: true,       // ✦ auto-scroll enabled
-    nextLabel: 'Next',
-    prevLabel: 'Back',
+  intro.setOptions({
+    template      : tpl,              // <— custom tooltip markup
+    tooltipClass  : "guru-tooltip",   // for extra CSS rules
+    nextLabel     : "Next ▸",
+    prevLabel     : "◂ Back",
+    doneLabel     : "Begin the walk",
+
     steps: [
       {
+        title: "Добро пожаловать!",
         intro:
-          '<b>Welcome, seeker of mastery.</b><br>' +
-          'A <em>league</em> is the distance a person can walk in one focused hour.<br>' +
-          'Your journey begins now.',
+          "Greetings, <em>Student</em>. I am your guide. Together we will walk Leagues toward mastery."
       },
-      {
-        element: '#goal-manager',
-        intro:
-          'Click “➕ New” to set your first goal. Every journey needs a destination.',
-        disableInteraction: false,    // let user press the button
-      },
-      {
-        element: '#session-timer',
-        intro:
-          'Start the timer to walk your leagues. Stay focused – each second matters.',
-      },
-      {
-        element: '#pomodoro-section',
-        intro:
-          'Pomodoro cycles keep your stride steady – effort balanced with rest.',
-      },
-      {
-        /* Logbook step: waits until #logs-section exists */
-        element: '#logs-section',
-        intro:
-          'This is your logbook. Reflect on your steps and learn from them.',
-      },
-      {
-        intro:
-          'You are ready. Take the first step and let the journey teach you.',
-      },
-    ],
-  });
+      { element: "#goal-manager",     intro: "Choose the mountain you will climb — create a Goal." },
+      { element: "#session-timer",    intro: "Focus one League at a time. Press <strong>Start</strong>." },
+      { element: "#pomodoro-section", intro: "Rest is part of the rhythm. 25 min focus → 5 min pause." },
+      { element: "#leagues-progress", intro: "Observe how far you’ve travelled. Every pulse is progress." },
+      { element: "#logs-section",     intro: "Write short notes after each League. Reflection sharpens learning." },
+      { element: "#stoic-mentor",     intro: "I dwell here. Tap me anytime for calm, practical counsel." }
+    ]
+  } as any);          // cast avoids outdated @types/intro.js complaints
 
-  /* ── keep highlight aligned when Goal card resizes ───────────── */
-  const gm   = document.querySelector('#goal-manager');
-  let   obs: MutationObserver | null = null;
-  if (gm) {
-    obs = new MutationObserver(() => refreshSoon(tour));
-    obs.observe(gm, { childList: true, subtree: true });
-  }
+  /* hide bottom-right widget while tour is active */
+  const addFlag    = () => { document.body.classList.add("tour-active"); return true; };
+  const removeFlag = () =>   document.body.classList.remove("tour-active");
 
-  /* ── before each step: make sure element exists, then refresh ── */
-  tour.onbeforechange(async (el) => {
-    const sel = el?.getAttribute?.('id');
-    if (!sel) return;
+  intro.onbeforechange(addFlag);
+  intro.onafterchange (addFlag);
+  intro.oncomplete    (removeFlag);
+  intro.onexit        (removeFlag);
 
-    /* wait for element if it might appear later (logs-section) */
-    if (sel === 'logs-section') {
-      try {
-        await waitFor('#logs-section');
-      } catch {
-        /* give up silently; the step will float in center */
-      }
-    }
-    refreshSoon(tour);
-  });
-
-  /* ── cleanup & flag ──────────────────────────────────────────── */
-  const close = () => {
-    localStorage.setItem(TOUR_KEY, 'true');
-    tourRunning = false;
-    if (obs) obs.disconnect();
-  };
-  tour.onexit(close).oncomplete(close);
-
-  tour.start();
-}
+  intro.start();
+};

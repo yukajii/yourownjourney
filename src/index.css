@@ -42,3 +42,24 @@ body {
   animation-timing-function: linear;
   animation-iteration-count: infinite;
 }
+
+/* index.css ▸ bottom */
+@layer base{
+  @font-face{
+    font-family:'Inter'; font-style:normal; font-weight:100 900;
+    src:url('https://rsms.me/inter/font-files/Inter-VariableFont_slnt,wght.ttf') format('truetype');
+  }
+  body{ font-family:'Inter', ui-sans-serif, system-ui; }
+}
+
+/* radial glow */
+body::before{
+  content:''; position:fixed; inset:0; pointer-events:none;
+  background:radial-gradient(60% 80% at 50% 30%, var(--accent)/20 0%, transparent 70%);
+}
+
+/* gradient buttons */
+.btn-blue{ @apply bg-gradient-to-r from-[color:var(--accent)] to-[color:var(--accent-soft)] hover:opacity-90; }
+
+/* when body has .tour-active, suppress the fixed widget */
+body.tour-active #stoic-mentor{ display:none; }

@@ -1,0 +1,37 @@
+/* ── card shell ─────────────────────────────────────────── */
+.guru-tooltip{
+  max-width:360px;
+  background:var(--surface);
+  border-radius:20px;
+  padding:28px 24px 24px;
+  position:relative;
+  color:#e5e7eb;
+}
+
+/* close “×” button */
+.guru-tooltip .introjs-exitbutton{
+  position:absolute; top:14px; right:16px;
+  font-size:20px; color:#9ca3af;
+}
+
+/* centred title */
+.guru-tooltip .introjs-tooltip-title{
+  margin:0 0 18px;
+  text-align:center;
+  font-size:1.25rem; font-weight:700;
+}
+
+/* ── avatar + copy row ─────────────────────────────────── */
+.mentor-row{ display:flex; gap:16px; }
+
+.mentor-avatar{
+  width:72px; height:72px; flex-shrink:0;
+  border-radius:9999px;
+  object-fit:cover;
+  object-position:top;
+  box-shadow:0 0 0 2px var(--surface);
+}
+
+.guru-tooltip .introjs-tooltiptext{
+  margin:0; line-height:1.45;
+}

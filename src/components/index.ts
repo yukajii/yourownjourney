@@ -7,4 +7,5 @@ export { default as Pomodoro }       from "./Pomodoro";
 export { default as Logs }           from "./Logs";
 export { default as GoalManager }    from "./GoalManager";
 export { default as ResetAll }        from "./ResetAll";
+export { default as StoicMentor } from './StoicMentor';
 
