@@ -1,30 +1,40 @@
 import { useGoals } from "../contexts/GoalsContext";
+import { useModal } from "../modals/ModalProvider";
 
 const GoalManager = () => {
-  const {
-    goals,
-    currentGoalId,
-    createGoal,
-    renameGoal,
-    deleteGoal,
-    setCurrentGoal,
-  } = useGoals();
+  const { goals, currentGoalId, current, createGoal, renameGoal, deleteGoal, setCurrentGoal } =
+    useGoals();
+  const { prompt, confirm } = useModal();
 
-  const handleCreate = () => {
-    const name = prompt("New goal name:")?.trim();
+  const handleCreate = async () => {
+    const name = await prompt({
+      title: "New goal",
+      label: "What are you walking toward?",
+      placeholder: "e.g. Learn Japanese",
+      confirmLabel: "Create",
+    });
     if (name) createGoal(name);
   };
 
-  const handleRename = () => {
-    if (!currentGoalId) return;
-    const current = goals.find((g) => g.id === currentGoalId);
-    const name = prompt("Rename goal:", current?.name)?.trim();
-    if (name) renameGoal(currentGoalId, name);
+  const handleRename = async () => {
+    if (!current) return;
+    const name = await prompt({
+      title: "Rename goal",
+      defaultValue: current.name,
+      confirmLabel: "Rename",
+    });
+    if (name) renameGoal(current.id, name);
   };
 
-  const handleDelete = () => {
-    if (goals.length === 1) return alert("You need at least one goal.");
-    if (confirm("Delete this goal?")) deleteGoal(currentGoalId!);
+  const handleDelete = async () => {
+    if (!current) return;
+    const ok = await confirm({
+      title: `Delete “${current.name}”?`,
+      body: "Its logged time and notes go with it. This cannot be undone.",
+      confirmLabel: "Delete",
+      danger: true,
+    });
+    if (ok) deleteGoal(current.id);
   };
 
   return (
@@ -33,8 +43,9 @@ const GoalManager = () => {
 
       {goals.length > 0 ? (
         <select
-          className="p-2 rounded bg-[color:var(--surface-alt)] text-gray-100 border border-white/10 focus:outline-none"
-          value={currentGoalId ?? undefined}
+          aria-label="Current goal"
+          className="rounded border border-white/10 bg-[color:var(--surface-alt)] p-2 text-gray-100 focus:outline-none"
+          value={currentGoalId ?? ""}
           onChange={(e) => setCurrentGoal(e.target.value)}
         >
           {goals.map((g) => (
@@ -51,18 +62,10 @@ const GoalManager = () => {
         <button onClick={handleCreate} className="btn btn-green flex-1">
           ➕ New
         </button>
-        <button
-          onClick={handleRename}
-          className="btn btn-blue flex-1"
-          disabled={!currentGoalId}
-        >
+        <button onClick={handleRename} className="btn btn-blue flex-1" disabled={!current}>
           ✏️ Rename
         </button>
-        <button
-          onClick={handleDelete}
-          className="btn btn-red flex-1"
-          disabled={goals.length === 1}
-        >
+        <button onClick={handleDelete} className="btn btn-red flex-1" disabled={!current}>
           🗑️ Delete
         </button>
       </div>

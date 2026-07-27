@@ -1,39 +1,55 @@
 // src/components/AuthBar.tsx
 import { useAuth } from "../contexts/AuthContext";
+import InstallPrompt from "./InstallPrompt";
 
 const AuthBar = () => {
-  const { user, signInWithGoogle, signOut } = useAuth();
+  const { user, loading, error, signInWithGoogle, signOut } = useAuth();
 
   return (
-    <header className="sticky top-0 z-10 bg-white/80 backdrop-blur flex items-center justify-between px-4 py-2 border-b shadow-sm">
-      {/* App name / logo */}
-      <span className="font-semibold text-lg">🏆 Leagues</span>
+    <header
+      className="sticky top-0 z-30 border-b border-white/10 bg-[color:var(--bg)]/85 shadow-sm
+                 backdrop-blur pt-[env(safe-area-inset-top)]"
+    >
+      <div className="mx-auto flex max-w-xl items-center justify-between gap-3 px-4 py-2">
+        <span className="flex items-center gap-2 text-lg font-semibold">
+          <img src="/favicon.svg" alt="" className="h-6 w-6" />
+          Leagues
+        </span>
 
-      {/* Right-side auth controls */}
-      {user ? (
-        <div className="flex items-center gap-3">
-          <img
-            src={user.photoURL ?? undefined}
-            alt={user.displayName ?? "avatar"}
-            className="w-8 h-8 rounded-full"
-          />
-          <span className="text-sm text-gray-700">
-            {user.displayName?.split(" ")[0]}
-          </span>
-          <button
-            onClick={signOut}
-            className="px-3 py-1 bg-red-500 hover:bg-red-600 text-white rounded-md"
-          >
-            Logout
-          </button>
+        <div className="flex items-center gap-2">
+          <InstallPrompt />
+
+          {loading ? (
+            <span className="text-sm text-gray-500">…</span>
+          ) : user ? (
+            <>
+              {user.photoURL && (
+                <img
+                  src={user.photoURL}
+                  alt=""
+                  className="h-8 w-8 rounded-full"
+                  referrerPolicy="no-referrer"
+                />
+              )}
+              <span className="hidden text-sm text-gray-300 sm:inline">
+                {user.displayName?.split(" ")[0]}
+              </span>
+              <button onClick={signOut} className="btn btn-outline px-3 py-1 text-sm">
+                Sign out
+              </button>
+            </>
+          ) : (
+            <button onClick={signInWithGoogle} className="btn btn-green px-3 py-1 text-sm">
+              Sign in
+            </button>
+          )}
         </div>
-      ) : (
-        <button
-          onClick={signInWithGoogle}
-          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md"
-        >
-          Sign in with Google
-        </button>
+      </div>
+
+      {error && (
+        <p role="alert" className="px-4 pb-2 text-center text-sm text-red-400">
+          {error}
+        </p>
       )}
     </header>
   );

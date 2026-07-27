@@ -1,45 +1,81 @@
+import { useState } from "react";
 import { usePomodoro, mmss } from "../hooks/usePomodoro";
 
+const PHASE_LABEL = {
+  idle: "Ready when you are",
+  focus: "Focusing",
+  break: "On a break",
+} as const;
+
 const Pomodoro = () => {
-  const {
-    phase,
-    secondsLeft,
-    startFocus,
-    takeBreak,
-    backToWork,
-    stop,
-  } = usePomodoro();
+  const { phase, secondsLeft, settings, setSettings, startFocus, takeBreak, backToWork, stop } =
+    usePomodoro();
+  const [showSettings, setShowSettings] = useState(false);
+
+  const numberField =
+    "w-20 rounded border border-white/10 bg-[color:var(--surface-alt)] p-1 text-gray-100 focus:outline-none";
 
   return (
     <section id="pomodoro-section" className="card flex flex-col gap-3">
-      <h2 className="text-lg font-semibold">Pomodoro</h2>
-
-      <div className="text-xl font-mono">
-        {phase === "idle" ? "25:00" : mmss(secondsLeft)}
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">Pomodoro</h2>
+        <button
+          onClick={() => setShowSettings((s) => !s)}
+          aria-expanded={showSettings}
+          className="btn btn-outline px-2 py-1 text-sm"
+        >
+          ⚙️
+        </button>
       </div>
+
+      <div className="font-mono text-3xl tabular-nums" aria-live="polite">
+        {mmss(secondsLeft)}
+      </div>
+
+      {showSettings && (
+        <div className="flex flex-wrap gap-4 rounded border border-white/10 p-3 text-sm">
+          <label className="flex items-center gap-2">
+            Focus
+            <input
+              type="number"
+              min={1}
+              max={180}
+              value={settings.pomodoroMinutes}
+              onChange={(e) =>
+                setSettings({ ...settings, pomodoroMinutes: Number(e.target.value) })
+              }
+              className={numberField}
+            />
+            min
+          </label>
+          <label className="flex items-center gap-2">
+            Break
+            <input
+              type="number"
+              min={1}
+              max={180}
+              value={settings.breakMinutes}
+              onChange={(e) => setSettings({ ...settings, breakMinutes: Number(e.target.value) })}
+              className={numberField}
+            />
+            min
+          </label>
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-2">
         {phase === "idle" && (
-          <button
-            onClick={startFocus}
-            className="flex-1 bg-green-600 text-white rounded p-2"
-          >
+          <button onClick={startFocus} className="btn btn-green flex-1">
             Start Focus
           </button>
         )}
 
         {phase === "focus" && (
           <>
-            <button
-              onClick={takeBreak}
-              className="flex-1 bg-blue-600 text-white rounded p-2"
-            >
+            <button onClick={takeBreak} className="btn btn-blue flex-1">
               Take Break
             </button>
-            <button
-              onClick={stop}
-              className="flex-1 bg-red-600 text-white rounded p-2"
-            >
+            <button onClick={stop} className="btn btn-red flex-1">
               Stop
             </button>
           </>
@@ -47,23 +83,17 @@ const Pomodoro = () => {
 
         {phase === "break" && (
           <>
-            <button
-              onClick={backToWork}
-              className="flex-1 bg-green-600 text-white rounded p-2"
-            >
+            <button onClick={backToWork} className="btn btn-green flex-1">
               Back to Work
             </button>
-            <button
-              onClick={stop}
-              className="flex-1 bg-red-600 text-white rounded p-2"
-            >
+            <button onClick={stop} className="btn btn-red flex-1">
               Stop
             </button>
           </>
         )}
       </div>
 
-      <div className="text-sm text-gray-600 capitalize">State: {phase}</div>
+      <div className="text-sm text-gray-400">{PHASE_LABEL[phase]}</div>
     </section>
   );
 };

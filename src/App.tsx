@@ -1,3 +1,4 @@
+import React, { useEffect } from 'react';
 import {
   AuthBar,
   GoalHeader,
@@ -6,27 +7,38 @@ import {
   Pomodoro,
   Logs,
   GoalManager,
-} from './components'; // barrel export once stubs are created
+  ResetAll,
+  UpdatePrompt,
+  StoicMentor,
+} from './components';
+import { useGoals } from './contexts/GoalsContext';
 import { maybeRunIntroTour } from './introTour';
-import React, { useEffect } from 'react';
-import { StoicMentor } from './components';
 
 const App: React.FC = () => {
+  const { loading } = useGoals();
+
   useEffect(() => {
-    maybeRunIntroTour();          // fire after first mount
-  }, []);
+    // Wait for the first data read: the tour highlights cards that only exist
+    // once goals have loaded.
+    if (!loading) maybeRunIntroTour();
+  }, [loading]);
+
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex min-h-screen flex-col">
       <AuthBar />
-      <main className="flex-grow p-4 max-w-xl mx-auto space-y-6">
+
+      <main className="mx-auto w-full max-w-xl flex-grow space-y-6 p-4 pb-24">
         <GoalHeader />
         <SessionTimer />
         <LeaguesProgress />
         <Pomodoro />
         <Logs />
         <GoalManager />
+        <ResetAll />
       </main>
-    <StoicMentor />   {/* anchored bottom-right */}
+
+      <StoicMentor />
+      <UpdatePrompt />
     </div>
   );
 };

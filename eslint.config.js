@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 import { globalIgnores } from 'eslint/config'
 
 export default tseslint.config([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'dev-dist']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -18,6 +18,17 @@ export default tseslint.config([
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
+    },
+  },
+  {
+    // A provider and its own accessor hook belong together; splitting them
+    // across files would serve nothing but the fast-refresh heuristic.
+    files: ['src/contexts/*.tsx', 'src/modals/*.tsx'],
+    rules: {
+      'react-refresh/only-export-components': [
+        'warn',
+        { allowExportNames: ['useAuth', 'useGoals', 'useSession', 'useModal', 'fmt'] },
+      ],
     },
   },
 ])
