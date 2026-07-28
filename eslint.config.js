@@ -6,7 +6,9 @@ import tseslint from 'typescript-eslint'
 import { globalIgnores } from 'eslint/config'
 
 export default tseslint.config([
-  globalIgnores(['dist', 'dev-dist']),
+  // The Worker is a separate package with its own tsconfig and runtime globals;
+  // it is linted and type-checked from worker/, not here.
+  globalIgnores(['dist', 'dev-dist', 'worker']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

@@ -60,6 +60,36 @@ off, so `useTicker` merely decides *when* to recompute and every value is
 derived from `Date.now()`. Reopening the app after an hour therefore shows the
 correct elapsed time rather than a countdown that stopped in your pocket.
 
+### Reflection
+
+The note field was write-only — nothing in the app ever read it back. The
+reflection sends one period's notes to `gpt-5.6-luna` and returns the threads
+running through them. It is opt-in, never automatic, and the card says plainly
+that the notes leave the device.
+
+The key cannot live in this app. Leagues is a static PWA, so anything it can
+read, every visitor can read; Vite compiles every `VITE_*` variable into the
+public bundle. The key therefore lives on a Cloudflare Worker in `worker/`,
+which verifies the caller's Firebase ID token against Google's public keys
+before spending it. Without that check, an endpoint holding a funded key is a
+free OpenAI account for anyone who finds the URL.
+
+Setting it up:
+
+```bash
+cd worker
+npx wrangler login
+npx wrangler secret put OPENAI_API_KEY   # paste at the prompt; never committed
+npx wrangler deploy
+```
+
+Then put the deployed Worker's URL in the app's `.env` as
+`VITE_REFLECTION_ENDPOINT` (see `.env.example`) and rebuild. Until that is set,
+the Reflection card does not render at all, so the app works exactly as before.
+
+The Worker's free tier covers 100k requests a day, which a monthly reflection
+will not trouble.
+
 ### The mentor
 
 `src/mentor.ts` turns the state of the journey into a set of lines, ordered by

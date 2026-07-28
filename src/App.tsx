@@ -8,6 +8,7 @@ import {
   Pomodoro,
   Logs,
   GoalManager,
+  Reflection,
   ExportData,
   ResetAll,
   UpdatePrompt,
@@ -37,6 +38,7 @@ const App: React.FC = () => {
         <Pomodoro />
         <Logs />
         <GoalManager />
+        <Reflection />
         <ExportData />
         <ResetAll />
       </main>

@@ -1,0 +1,12 @@
+name = "leagues-reflection"
+main = "src/index.ts"
+# Pinned to what the installed wrangler runtime supports. Nothing here needs a
+# newer date; raise it alongside a wrangler upgrade if that ever changes.
+compatibility_date = "2026-05-01"
+
+# Public, non-secret configuration. The OpenAI key is NOT here — it is set with
+#   wrangler secret put OPENAI_API_KEY
+# which stores it server-side and never writes it to this file or the bundle.
+[vars]
+FIREBASE_PROJECT_ID = "leagues-2790f"
+ALLOWED_ORIGINS = "https://leagues-2790f.web.app,https://leagues-2790f.firebaseapp.com,http://localhost:5176"

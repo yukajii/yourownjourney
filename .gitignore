@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Secrets. This repo is pushed to GitHub — never commit these.
+.env
+.env.*
+!.env.example
+
 # vite-plugin-pwa's dev-mode service worker output
 dev-dist
 
@@ -28,3 +33,8 @@ dev-dist
 *.njsproj
 *.sln
 *.sw?
+
+# Worker dependencies and local secret overrides
+worker/node_modules
+worker/.wrangler
+worker/.dev.vars
