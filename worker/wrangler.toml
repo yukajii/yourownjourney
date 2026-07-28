@@ -4,6 +4,12 @@ main = "src/index.ts"
 # newer date; raise it alongside a wrangler upgrade if that ever changes.
 compatibility_date = "2026-05-01"
 
+# The workers.dev URL is how the app reaches this. Preview URLs are off: they
+# would publish a separate public address per version, each with access to the
+# OpenAI secret, for no benefit here.
+workers_dev = true
+preview_urls = false
+
 # Public, non-secret configuration. The OpenAI key is NOT here — it is set with
 #   wrangler secret put OPENAI_API_KEY
 # which stores it server-side and never writes it to this file or the bundle.
