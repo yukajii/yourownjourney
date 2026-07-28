@@ -4,6 +4,7 @@ import {
   GoalHeader,
   SessionTimer,
   LeaguesProgress,
+  Journey,
   Pomodoro,
   Logs,
   GoalManager,
@@ -32,6 +33,7 @@ const App: React.FC = () => {
         <GoalHeader />
         <SessionTimer />
         <LeaguesProgress />
+        <Journey />
         <Pomodoro />
         <Logs />
         <GoalManager />

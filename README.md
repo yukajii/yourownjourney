@@ -60,6 +60,20 @@ off, so `useTicker` merely decides *when* to recompute and every value is
 derived from `Date.now()`. Reopening the app after an hour therefore shows the
 correct elapsed time rather than a countdown that stopped in your pocket.
 
+### Waypoints
+
+The tiers — 20, 100, 1000, 10000 — frame the whole journey but make a poor
+progress bar: between 100 and 1000, an hour a day moves it by a tenth of a
+percent, so it reads as motionless for years. `src/journey.ts` puts waypoints
+between them, spaced 5 leagues apart at the start and widening to 1000, and
+the bar fills toward the next one. Every tier is also a waypoint, so the bar
+lands exactly on a tier rather than sailing past it, and the tier stays on
+screen as the larger frame.
+
+Pace is measured over a trailing 28 days rather than a lifetime average, so a
+goal picked up again after a fallow month reflects this month. Arrival
+estimates past a decade are withheld rather than shown as a date in the 2050s.
+
 ### Data layout
 
 ```
