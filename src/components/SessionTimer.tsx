@@ -2,31 +2,23 @@ import React from "react";
 import { useSession } from "../contexts/SessionContext";
 import { fmt } from "../format";
 import { useGoals } from "../contexts/GoalsContext";
-import { useModal } from "../modals/ModalProvider";
+import { useLogWalk } from "../hooks/useLogWalk";
 import FootstepStrip from "./FootstepStrip";
 
 const SessionTimer: React.FC = () => {
   const { isActive, seconds, canStart, start, stop } = useSession();
-  const { current, pushLog } = useGoals();
-  const { prompt } = useModal();
+  const { current } = useGoals();
+  const logWalk = useLogWalk();
 
   const leaguesPreview = current ? ((current.totalTime + seconds) / 3600).toFixed(2) : "0.00";
 
   const handleStop = async () => {
     const stopped = stop();
     if (!stopped) return;
-
-    const note = await prompt({
+    await logWalk(stopped.durationSec, {
       title: "Session complete",
-      label: `${fmt(stopped.durationSec)} — what did you accomplish?`,
-      placeholder: "Optional",
-      confirmLabel: "Log it",
-      multiline: true,
-      allowEmpty: true,
+      goalId: stopped.goalId,
     });
-
-    // Dismissing the note must not throw the walked time away.
-    pushLog(stopped.durationSec, note ?? "", stopped.goalId);
   };
 
   return (

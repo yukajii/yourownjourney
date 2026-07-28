@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { usePomodoro } from "../hooks/usePomodoro";
 import { mmss } from "../format";
+import { useGoals } from "../contexts/GoalsContext";
+import { useSession } from "../contexts/SessionContext";
+import { useLogWalk } from "../hooks/useLogWalk";
 
 const PHASE_LABEL = {
   idle: "Ready when you are",
@@ -9,9 +12,22 @@ const PHASE_LABEL = {
 } as const;
 
 const Pomodoro = () => {
-  const { phase, secondsLeft, settings, setSettings, startFocus, takeBreak, backToWork, stop } =
-    usePomodoro();
+  const { current } = useGoals();
+  const { isActive } = useSession();
+  const logWalk = useLogWalk();
   const [showSettings, setShowSettings] = useState(false);
+
+  const { phase, secondsLeft, settings, setSettings, startFocus, takeBreak, backToWork, stop } =
+    usePomodoro({
+      onFocusEnded: (elapsedSec) => {
+        // A pomodoro is a way of walking, so focus time counts as leagues.
+        //
+        // Except while the session timer is already running: it is measuring
+        // the same minutes, and logging both would count that hour twice.
+        if (!settings.linkSessions || !current || isActive) return;
+        void logWalk(elapsedSec, { title: "Focus block complete" });
+      },
+    });
 
   const numberField =
     "w-20 rounded border border-white/10 bg-[color:var(--surface-alt)] p-1 text-gray-100 focus:outline-none";
@@ -60,6 +76,22 @@ const Pomodoro = () => {
               className={numberField}
             />
             min
+          </label>
+
+          <label className="flex w-full items-start gap-2">
+            <input
+              type="checkbox"
+              checked={settings.linkSessions}
+              onChange={(e) => setSettings({ ...settings, linkSessions: e.target.checked })}
+              className="mt-0.5"
+            />
+            <span>
+              Count focus blocks as Leagues walked
+              <span className="block text-xs text-gray-500">
+                Skipped while the session timer is running, so an hour is never
+                counted twice.
+              </span>
+            </span>
           </label>
         </div>
       )}

@@ -143,6 +143,20 @@ ids are derived from the entry rather than random, so a run interrupted
 halfway can simply be repeated; the legacy array is deleted only after
 everything else has committed.
 
+### Pomodoro and leagues
+
+A pomodoro is a way of walking, so a completed focus block is logged as leagues
+walked — it asks what you accomplished exactly as the session timer does. Ending
+a block early logs only the minutes actually spent in it.
+
+Two things it deliberately will not do. It never logs while the session timer is
+running, because that clock is already measuring the same minutes and the hour
+would be counted twice. And a block that expires while the app is closed is not
+logged at all: the app cannot know you kept working through it, and inventing
+time you never confirmed is worse than missing it — add it by hand instead.
+
+The behaviour can be turned off entirely in the pomodoro's settings.
+
 ### Offline and sync
 
 Goals are written to `localStorage` synchronously and mirrored to Firestore in

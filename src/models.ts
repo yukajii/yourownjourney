@@ -30,6 +30,8 @@ export interface LegacyGoal {
 export interface Settings {
   pomodoroMinutes: number;
   breakMinutes:    number;
+  /** Whether a completed focus block is logged as leagues walked. */
+  linkSessions:    boolean;
 }
 
 export const TIERS = [20, 100, 1000, 10000];   // Leagues (hours)
