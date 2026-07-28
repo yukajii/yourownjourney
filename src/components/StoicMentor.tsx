@@ -1,34 +1,55 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import mentorImg from "../assets/stoic-mentor.png";
+import { useGoals } from "../contexts/GoalsContext";
+import { useSession } from "../contexts/SessionContext";
+import { buildSignals, mentorLines, situationKey } from "../mentor";
 
 /**
  * StoicMentor – a floating widget that delivers concise, pragmatic guidance
  * grounded in classical Stoic thought.
  *
- * • Anchored bottom‑right so it never obscures core UI.
- * • Cycles through short quotes / nudges every 15 s.
- * • Uses Tailwind + your CSS vars (surface, accent, etc.) so theme is inherited.
+ * • Anchored bottom-right so it never obscures core UI.
+ * • Speaks to the actual state of the journey — a streak, an absence, a mark
+ *   within reach, a session already running — rather than cycling fixed
+ *   aphorisms that may contradict it. See src/mentor.ts.
  * • `#stoic-mentor` is spotlighted as the final step of the Intro.js tour.
  */
-
-const sayings = [
-  "Focus not on how far you have to go, but on the hour you dedicate right now.",
-  "Greatness is merely good practice, repeated daily.",
-  "Mastery is built moment‑by‑moment; keep building.",
-  "Progress comes from doing the simple things consistently.",
-  "Reflect on your progress and recommit to the path ahead.",
-  "Missed a session? That is past. Choose consistency today.",
-  "Consistency breeds excellence. Pause briefly, then continue forward."
-];
+const ROTATE_MS = 15_000;
 
 export const StoicMentor = () => {
+  const { current, logs } = useGoals();
+  const { isActive, seconds } = useSession();
   const [index, setIndex] = useState(0);
 
+  /*
+   * Rounded down to the minute so a ticking session does not rebuild the line
+   * set once a second. Nothing the mentor reacts to changes faster than that.
+   */
+  const coarseSeconds = Math.floor(seconds / 60) * 60;
+
+  const lines = useMemo(
+    () => mentorLines(buildSignals(current, logs, { isActive, seconds: coarseSeconds })),
+    [current, logs, isActive, coarseSeconds]
+  );
+
+  // When the situation changes, restart at the most pressing line instead of
+  // leaving a stale one up for as much as fifteen seconds.
+  const key = situationKey(lines);
+  const lastKey = useRef(key);
+  if (lastKey.current !== key) {
+    lastKey.current = key;
+    if (index !== 0) setIndex(0);
+  }
+
   useEffect(() => {
-    const id = setInterval(() => setIndex(i => (i + 1) % sayings.length), 15000);
+    if (lines.length <= 1) return;
+    const id = setInterval(() => setIndex((i) => (i + 1) % lines.length), ROTATE_MS);
     return () => clearInterval(id);
-  }, []);
+  }, [lines.length, key]);
+
+  const line = lines[Math.min(index, lines.length - 1)];
+  if (!line) return null;
 
   return (
     <div
@@ -37,14 +58,14 @@ export const StoicMentor = () => {
     >
       <AnimatePresence mode="wait">
         <motion.div
-          key={index}
+          key={line.id}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -6 }}
           transition={{ duration: 0.25 }}
           className="max-w-xs bg-[color:var(--surface-alt)] border border-white/10 shadow-xl rounded-2xl p-4"
         >
-          <p className="text-sm leading-relaxed text-gray-300">{sayings[index]}</p>
+          <p className="text-sm leading-relaxed text-gray-300">{line.text}</p>
         </motion.div>
       </AnimatePresence>
 

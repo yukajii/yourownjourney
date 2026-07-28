@@ -60,6 +60,19 @@ off, so `useTicker` merely decides *when* to recompute and every value is
 derived from `Date.now()`. Reopening the app after an hour therefore shows the
 correct elapsed time rather than a countdown that stopped in your pocket.
 
+### The mentor
+
+`src/mentor.ts` turns the state of the journey into a set of lines, ordered by
+how pressing they are: a session already running, a mark within reach, a gap
+to come back from, a streak to keep. The widget rotates through that set, so
+it can keep speaking without ever saying something untrue.
+
+That constraint is the whole point. The previous version cycled seven fixed
+sayings, one of which told a user on a twelve-day streak that they had missed
+a session. `mentor.test.ts` asserts the invariant directly across a range of
+states — no absence line when today is walked, no streak claim without a
+streak, no pace claim without movement.
+
 ### Waypoints
 
 The tiers — 20, 100, 1000, 10000 — frame the whole journey but make a poor
