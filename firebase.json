@@ -1,29 +1,5 @@
 {
   "firestore": {
     "rules": "firestore.rules"
-  },
-  "hosting": {
-    "public": "dist",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ],
-    "headers": [
-      {
-        "comment": "The service worker and its manifest must be revalidated on every load, otherwise a cached copy pins clients to an old build.",
-        "source": "/@(sw.js|workbox-*.js|manifest.webmanifest|index.html)",
-        "headers": [{ "key": "Cache-Control", "value": "no-cache, max-age=0" }]
-      },
-      {
-        "comment": "Everything under /assets carries a content hash in its name, so it can be cached forever.",
-        "source": "/assets/**",
-        "headers": [
-          { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
-        ]
-      }
-    ]
   }
 }

@@ -25,12 +25,35 @@ npm run dev        # http://localhost:5173
 
 ## Deploying
 
-Hosting and Firestore rules live in `firebase.json` and `firestore.rules`:
+The site is hosted on **Cloudflare Pages** (project `leagues`, serving
+`leagues.yukajii.com`), which builds from `main` on every push. There is no
+manual deploy step for the app.
+
+Firebase is used only for Auth and Firestore. Its rules deploy separately:
 
 ```bash
-npm run build
-npx firebase deploy
+npx firebase deploy --only firestore
 ```
+
+The reflection Worker deploys on its own:
+
+```bash
+cd worker && npx wrangler deploy
+```
+
+### Build-time configuration
+
+`VITE_*` values are compiled into the bundle, so they must be set **in the
+Cloudflare Pages project**, not only in a local `.env` — `.env` is gitignored
+and the build has no access to it. Pages → Settings → Environment variables:
+
+| variable | purpose |
+| -------- | ------- |
+| `VITE_REFLECTION_ENDPOINT` | the reflection Worker's URL; the Reflection card does not render without it |
+| `VITE_CF_ANALYTICS_TOKEN`  | Cloudflare Web Analytics site token |
+
+Caching lives in `public/_headers`. Pages does not read `firebase.json`, and a
+long-cached `sw.js` would strand installed users on an old build.
 
 `firestore.rules` restricts `users/{uid}` and everything beneath it to its
 owner. Deploy it at least once — a project left in test mode lets any
