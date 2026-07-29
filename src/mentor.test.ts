@@ -92,14 +92,15 @@ describe("mentorLines", () => {
   it("names the actual gap when returning after one", () => {
     const s = buildSignals(goal(10 * 3600), [log(20)], idle, NOW);
     const line = mentorLines(s).find((l) => l.id === "long-absence");
-    expect(line?.text).toContain("20 days");
+    expect(line?.key).toBe("mentor.longAbsence");
+    expect(line?.params?.days).toBe(20);
   });
 
   it("reaches for a station when one is close", () => {
     // 19.5 leagues: half a league short of the 20 threshold.
     const s = buildSignals(goal(19.5 * 3600), [log(1)], idle, NOW);
     const line = mentorLines(s).find((l) => l.id === "near-mark");
-    expect(line?.text).toContain("landfall");
+    expect(line?.key).toBe("mentor.nearTier");
     expect(line?.priority).toBeGreaterThan(60);
   });
 

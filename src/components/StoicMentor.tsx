@@ -3,23 +3,43 @@ import { motion, AnimatePresence } from "framer-motion";
 import mentorImg from "../assets/stoic-mentor.png";
 import { useGoals } from "../contexts/GoalsContext";
 import { useSession } from "../contexts/SessionContext";
-import { buildSignals, mentorLines, situationKey } from "../mentor";
+import { useT } from "../i18n";
+import { buildSignals, mentorLines, situationKey, type MentorLine } from "../mentor";
+import type { Translator } from "../i18n/translate";
 
 /**
  * StoicMentor – a floating widget that delivers concise, pragmatic guidance
  * grounded in classical Stoic thought.
  *
- * • Anchored bottom-right so it never obscures core UI.
- * • Speaks to the actual state of the journey — a streak, an absence, a mark
+ * • Anchored bottom-right so it never obscures core UI, and it stands down for
+ *   the tour and for any prompt sharing that corner.
+ * • Speaks to the actual state of the voyage — a streak, an absence, a station
  *   within reach, a session already running — rather than cycling fixed
  *   aphorisms that may contradict it. See src/mentor.ts.
  * • `#stoic-mentor` is spotlighted as the final step of the Intro.js tour.
  */
 const ROTATE_MS = 15_000;
 
+/**
+ * mentor.ts emits keys, not sentences, so the same logic serves every
+ * language. One line nests a translated phrase inside another, which is
+ * resolved here rather than in the pure module.
+ */
+const say = (t: Translator, line: MentorLine): string => {
+  if (line.key === "mentor.almostThere") {
+    const { timeKey, timeN, next } = line.params ?? {};
+    return t("mentor.almostThere", {
+      time: t(String(timeKey), { n: Number(timeN) || 0 }),
+      next: String(next),
+    });
+  }
+  return t(line.key, line.params);
+};
+
 export const StoicMentor = () => {
   const { current, logs, loading } = useGoals();
   const { isActive, seconds } = useSession();
+  const t = useT();
   const [index, setIndex] = useState(0);
 
   /*
@@ -54,11 +74,9 @@ export const StoicMentor = () => {
   /*
    * Nothing until the first read has settled.
    *
-   * Goals are loaded in an effect, so the first paint has no goal even when
-   * one is stored. Rendering then meant speaking the "name a goal" line,
-   * immediately recomputing, and — because AnimatePresence keys on the line —
-   * animating a second bubble in over the top. It read as the mentor appearing
-   * twice.
+   * Goals load before the first paint now, but a signed-in user on a fresh
+   * device still waits on the network; rendering then would speak the "name a
+   * goal" line and animate a second bubble in when the real data arrived.
    */
   if (loading) return null;
 
@@ -78,7 +96,7 @@ export const StoicMentor = () => {
           transition={{ duration: 0.25 }}
           className="max-w-xs bg-[color:var(--surface-alt)] border border-white/10 shadow-xl rounded-2xl p-4"
         >
-          <p className="text-sm leading-relaxed text-gray-300">{line.text}</p>
+          <p className="text-sm leading-relaxed text-gray-300">{say(t, line)}</p>
         </motion.div>
       </AnimatePresence>
 

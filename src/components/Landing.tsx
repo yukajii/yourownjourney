@@ -1,3 +1,4 @@
+import { useT } from "../i18n";
 import { TIER_STAGES } from "../tiers";
 
 /**
@@ -8,41 +9,42 @@ import { TIER_STAGES } from "../tiers";
  * five seconds and then gets out of the way — it is shown only to a visitor
  * with no goals who is not signed in, so it never appears twice.
  */
-const Landing = () => (
+const Landing = () => {
+  const t = useT();
+
+  return (
   <section className="card-hero flex flex-col gap-5 text-center">
     <div className="flex flex-col gap-3">
-      <p className="section-title mx-auto">A focus tracker shaped like the Odyssey</p>
+      <p className="section-title mx-auto">{t("landing.eyebrow")}</p>
 
       <h1 className="font-display text-4xl font-semibold leading-tight sm:text-5xl">
-        Ten years is a long voyage.
+        {t("landing.headline1")}
         <br />
-        Count it in leagues.
+        {t("landing.headline2")}
       </h1>
 
       <p className="mx-auto max-w-md text-sm leading-relaxed text-gray-400">
-        A <span className="text-gray-200">league</span> is the distance you can walk in one
-        focused hour — and, as it happens, a measure used at sea. Start the clock, do the
-        work, write a line about what you did. Every hour puts your goal a little further
-        along the chart.
+        {t("landing.body", { league: t("landing.league") })}
       </p>
     </div>
 
     {/* The stations, so the shape of a long journey is visible immediately. */}
     <ol className="mx-auto flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-gray-500">
       {TIER_STAGES.map((stage, i) => (
-        <li key={stage.name} className="flex items-center gap-2">
+        <li key={stage.nameKey} className="flex items-center gap-2">
           {i > 0 && <span aria-hidden className="text-gray-700">·</span>}
-          <span style={{ color: stage.accent }}>{stage.name}</span>
+          <span style={{ color: stage.accent }}>{t(stage.nameKey)}</span>
           <span className="tabular-nums text-gray-600">{stage.from}</span>
         </li>
       ))}
     </ol>
 
     <p className="text-sm text-gray-500">
-      No account needed to try it. Works offline. Your notes stay yours —
-      <span className="whitespace-nowrap"> export them any time.</span>
+      {t("landing.footer")}
+      <span className="whitespace-nowrap">{t("landing.footerExport")}</span>
     </p>
   </section>
-);
+  );
+};
 
 export default Landing;

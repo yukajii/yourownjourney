@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useGoals } from "../contexts/GoalsContext";
 import { download, exportFilename, toBundle, toCsv } from "../export";
+import { useT } from "../i18n";
 
 /**
  * Takes the journey out of the app.
@@ -11,6 +12,7 @@ import { download, exportFilename, toBundle, toCsv } from "../export";
  */
 const ExportData = () => {
   const { goals, loadAllLogs } = useGoals();
+  const t = useT();
   const [busy, setBusy] = useState<"json" | "csv" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,7 +36,7 @@ const ExportData = () => {
       }
     } catch (e) {
       console.error("Export failed", e);
-      setError("Could not gather your logs. If you are offline, try again once connected.");
+      setError(t("data.failed"));
     } finally {
       setBusy(null);
     }
@@ -42,9 +44,9 @@ const ExportData = () => {
 
   return (
     <section id="export-data" className="card flex flex-col gap-3">
-      <h2 className="section-title">Your data</h2>
+      <h2 className="section-title">{t("data.title")}</h2>
       <p className="text-sm text-gray-400">
-        Every goal, every logged hour and every note — yours to keep.
+        {t("data.body")}
       </p>
 
       <div className="flex gap-2">
@@ -53,14 +55,14 @@ const ExportData = () => {
           disabled={busy !== null}
           className="btn btn-outline flex-1"
         >
-          {busy === "json" ? "Gathering…" : "⬇ JSON"}
+          {busy === "json" ? t("data.gathering") : "⬇ JSON"}
         </button>
         <button
           onClick={() => run("csv")}
           disabled={busy !== null}
           className="btn btn-outline flex-1"
         >
-          {busy === "csv" ? "Gathering…" : "⬇ CSV"}
+          {busy === "csv" ? t("data.gathering") : "⬇ CSV"}
         </button>
       </div>
 

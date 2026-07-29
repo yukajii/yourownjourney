@@ -1,9 +1,11 @@
 // src/components/AuthBar.tsx
 import { useAuth } from "../contexts/AuthContext";
+import { useT } from "../i18n";
 import InstallPrompt from "./InstallPrompt";
 
 const AuthBar = () => {
   const { user, loading, error, signInWithGoogle, signOut } = useAuth();
+  const t = useT();
 
   return (
     <header
@@ -11,7 +13,7 @@ const AuthBar = () => {
                  backdrop-blur pt-[env(safe-area-inset-top)]"
     >
       <div className="mx-auto flex max-w-xl items-center justify-between gap-3 px-4 py-2">
-        <span className="flex items-center gap-2 text-lg font-semibold">
+        <span className="flex items-center gap-2 font-display text-xl font-semibold">
           <img src="/favicon.svg" alt="" className="h-6 w-6" />
           Leagues
         </span>
@@ -35,12 +37,12 @@ const AuthBar = () => {
                 {user.displayName?.split(" ")[0]}
               </span>
               <button onClick={signOut} className="btn btn-outline px-3 py-1 text-sm">
-                Sign out
+                {t("auth.signOut")}
               </button>
             </>
           ) : (
             <button onClick={signInWithGoogle} className="btn btn-green px-3 py-1 text-sm">
-              Sign in
+              {t("auth.signIn")}
             </button>
           )}
         </div>
@@ -48,7 +50,7 @@ const AuthBar = () => {
 
       {error && (
         <p role="alert" className="px-4 pb-2 text-center text-sm text-red-400">
-          {error}
+          {t(error)}
         </p>
       )}
     </header>

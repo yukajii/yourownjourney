@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useT } from "../i18n";
 
 const isStandalone = () =>
   window.matchMedia("(display-mode: standalone)").matches ||
@@ -16,6 +17,7 @@ const isIos = () =>
  * "Add to Home Screen" route instead.
  */
 const InstallPrompt = () => {
+  const t = useT();
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [installed, setInstalled] = useState(isStandalone);
   const [showIosHelp, setShowIosHelp] = useState(false);
@@ -57,9 +59,9 @@ const InstallPrompt = () => {
       <button
         onClick={iosFallback ? () => setShowIosHelp(true) : install}
         className="btn btn-outline text-sm py-1 px-3"
-        title="Install Leagues on this device"
+        title={t("install.button")}
       >
-        ⬇️ Install
+        ⬇️ {t("install.button")}
       </button>
 
       {showIosHelp && (
@@ -71,17 +73,17 @@ const InstallPrompt = () => {
             className="card max-w-sm space-y-3 text-sm"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-lg font-semibold">Add to Home Screen</h2>
+            <h2 className="font-display text-lg font-semibold">{t("install.title")}</h2>
             <ol className="list-decimal space-y-1 pl-5 text-gray-300">
-              <li>Tap the Share button in Safari&apos;s toolbar.</li>
-              <li>Choose &ldquo;Add to Home Screen&rdquo;.</li>
-              <li>Tap &ldquo;Add&rdquo; — Leagues then opens like any other app.</li>
+              <li>{t("install.step1")}</li>
+              <li>{t("install.step2")}</li>
+              <li>{t("install.step3")}</li>
             </ol>
             <button
               onClick={() => setShowIosHelp(false)}
               className="btn btn-blue w-full"
             >
-              Got it
+              {t("install.gotIt")}
             </button>
           </div>
         </div>

@@ -63,16 +63,28 @@ export const buildSignals = (
   };
 };
 
-export type MentorLine = { id: string; text: string; priority: number };
+/**
+ * A line the mentor could say: a translation key plus its values, never the
+ * finished sentence. The module stays pure and testable, and the same logic
+ * serves every language.
+ */
+export type MentorLine = {
+  id: string;
+  key: string;
+  params?: Record<string, string | number>;
+  priority: number;
+};
 
 const round = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2));
 
-/** Roughly how much longer, in plain words, at the current pace of the walk. */
-const minutesLeft = (remainingLeagues: number) => {
+/** Roughly how much longer, at the current pace. Returns a key to translate. */
+export const minutesLeftKey = (
+  remainingLeagues: number
+): { key: string; params?: Record<string, number> } => {
   const minutes = Math.ceil(remainingLeagues * 60);
-  if (minutes <= 1) return "a minute";
-  if (minutes < 60) return `${minutes} minutes`;
-  return "an hour or so";
+  if (minutes <= 1) return { key: "mentor.minute" };
+  if (minutes < 60) return { key: "mentor.minutes", params: { n: minutes } };
+  return { key: "mentor.anHour" };
 };
 
 /**
@@ -83,115 +95,88 @@ const minutesLeft = (remainingLeagues: number) => {
  */
 export const mentorLines = (s: MentorSignals): MentorLine[] => {
   const lines: MentorLine[] = [];
-  const add = (id: string, text: string, priority: number) =>
-    lines.push({ id, text, priority });
+  const add = (
+    id: string,
+    key: string,
+    priority: number,
+    params?: Record<string, string | number>
+  ) => lines.push({ id, key, priority, params });
 
   if (!s.hasGoal) {
-    add(
-      "no-goal",
-      "Every journey needs a destination. Name the mountain you intend to climb.",
-      100
-    );
+    add("no-goal", "mentor.noGoal", 100);
     return lines;
   }
 
-  /* ── while walking ─────────────────────────────────────────── */
+  /* ── at sea ────────────────────────────────────────────────── */
   if (s.isSessionActive) {
-    if (s.sessionSeconds >= 90 * 60) {
-      add(
-        "long-session",
-        "You have walked over ninety minutes without pause. Rest is not a retreat — it is what makes tomorrow possible.",
-        90
-      );
-    }
+    if (s.sessionSeconds >= 90 * 60) add("long-session", "mentor.longSession", 90);
+
     if (s.remaining <= 0.5) {
-      add(
-        "almost-there",
-        `${minutesLeft(s.remaining)} more and you reach ${round(s.next)} Leagues. Stay with it.`,
-        88
-      );
+      // The time phrase is itself translated, so it is passed as a key for the
+      // caller to resolve before interpolating.
+      const left = minutesLeftKey(s.remaining);
+      add("almost-there", "mentor.almostThere", 88, {
+        timeKey: left.key,
+        timeN: left.params?.n ?? 0,
+        next: round(s.next),
+      });
     }
-    add("walking", "You are walking now. Nothing else needs your attention.", 80);
-    add("walking-2", "The hour you are in is the only one you control.", 80);
+
+    add("walking", "mentor.walking", 80);
+    add("walking-2", "mentor.walking2", 80);
     return lines.sort((a, b) => b.priority - a.priority);
   }
 
   /* ── nothing walked yet ────────────────────────────────────── */
   if (s.daysSinceLast === null) {
-    add(
-      "never-walked",
-      "A league is one focused hour. You are one hour from your first.",
-      95
-    );
+    add("never-walked", "mentor.neverWalked", 95);
     return lines;
   }
 
   /* ── returning after a gap ─────────────────────────────────── */
   if (s.daysSinceLast >= 14) {
-    add(
-      "long-absence",
-      `${s.daysSinceLast} days among the Lotus Eaters. The sea did not go anywhere, and neither did the ${round(s.leagues)} Leagues already behind you.`,
-      70
-    );
+    add("long-absence", "mentor.longAbsence", 70, {
+      days: s.daysSinceLast,
+      leagues: round(s.leagues),
+    });
   } else if (s.daysSinceLast >= 7) {
-    add(
-      "week-absence",
-      "A week becalmed is not a wreck. Put out again today and the wind is yours.",
-      65
-    );
+    add("week-absence", "mentor.weekAbsence", 65);
   } else if (s.daysSinceLast >= 2) {
-    add(
-      "short-absence",
-      `${s.daysSinceLast} days since your last league. The shortest way back to sea is a single hour.`,
-      60
-    );
+    add("short-absence", "mentor.shortAbsence", 60, { days: s.daysSinceLast });
   }
 
   /* ── close to a mark ───────────────────────────────────────── */
   if (s.remaining <= 1) {
     add(
       "near-mark",
-      s.nextIsTier
-        ? `${round(s.remaining)} Leagues from landfall at ${round(s.next)}. That one is worth the oars.`
-        : `${round(s.remaining)} Leagues to ${round(s.next)}. One good crossing away.`,
-      s.nextIsTier ? 75 : 55
+      s.nextIsTier ? "mentor.nearTier" : "mentor.nearWaypoint",
+      s.nextIsTier ? 75 : 55,
+      { n: round(s.remaining), next: round(s.next) }
     );
   }
 
   /* ── streaks ───────────────────────────────────────────────── */
   if (s.streakDays >= 7) {
-    add(
-      "long-streak",
-      `${s.streakDays} days without breaking stride. This is what mastery looks like from the inside — unremarkable, and daily.`,
-      50
-    );
+    add("long-streak", "mentor.longStreak", 50, { days: s.streakDays });
   } else if (s.streakDays >= 3) {
-    add("streak", `${s.streakDays} days in a row. Do not break the chain today.`, 45);
+    add("streak", "mentor.streak", 45, { days: s.streakDays });
   }
 
   if (s.walkedToday) {
-    add("walked-today", "Today is already walked. Anything further is surplus.", 40);
+    add("walked-today", "mentor.walkedToday", 40);
   } else if (s.streakDays > 0) {
-    add(
-      "keep-streak",
-      `Your ${s.streakDays}-day streak is intact. One hour keeps it so.`,
-      48
-    );
+    add("keep-streak", "mentor.keepStreak", 48, { days: s.streakDays });
   }
 
   if (s.leaguesPerWeek > 0) {
-    add(
-      "pace",
-      `You are walking ${s.leaguesPerWeek.toFixed(1)} Leagues a week. Steady beats sudden.`,
-      30
-    );
+    add("pace", "mentor.pace", 30, { n: s.leaguesPerWeek.toFixed(1) });
   }
 
   /* ── evergreen, so the mentor never runs dry ───────────────── */
-  add("evergreen-1", "Focus not on how far you have to go, but on the hour in front of you.", 10);
-  add("evergreen-2", "Greatness is merely good practice, repeated past the point of novelty.", 10);
-  add("evergreen-3", "You cannot walk a thousand leagues today. You can walk one.", 10);
-  add("evergreen-4", "Progress is the simple thing, done again.", 10);
+  add("evergreen-1", "mentor.evergreen1", 10);
+  add("evergreen-2", "mentor.evergreen2", 10);
+  add("evergreen-3", "mentor.evergreen3", 10);
+  add("evergreen-4", "mentor.evergreen4", 10);
 
   return lines.sort((a, b) => b.priority - a.priority);
 };

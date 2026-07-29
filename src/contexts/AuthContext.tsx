@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Collects the result when we had to fall back to a full-page redirect.
     void getRedirectResult(auth).catch((e) => {
-      if (!USER_ABORTED.has(codeOf(e))) setError("Sign-in failed. Please try again.");
+      if (!USER_ABORTED.has(codeOf(e))) setError("auth.failed");
     });
 
     return unsub;
@@ -81,11 +81,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
 
       console.error("Sign-in failed", e);
-      setError(
-        code === "auth/network-request-failed"
-          ? "You appear to be offline. Your progress is still saved on this device."
-          : "Sign-in failed. Please try again."
-      );
+      // A key rather than a sentence: AuthBar translates it.
+      setError(code === "auth/network-request-failed" ? "auth.offline" : "auth.failed");
     }
   };
 

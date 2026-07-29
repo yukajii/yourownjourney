@@ -14,11 +14,11 @@ import { TIERS } from "./models";
  */
 export type Tier = {
   index: number;
-  name: string;
+  /** Translation keys rather than text: station names are localised. */
+  nameKey: string;
+  epithetKey: string;
   /** Leagues at which this stage begins. */
   from: number;
-  /** What the stage feels like, shown under the name. */
-  epithet: string;
   accent: string;
   accentSoft: string;
 };
@@ -26,42 +26,42 @@ export type Tier = {
 export const TIER_STAGES: Tier[] = [
   {
     index: 0,
-    name: "Troy",
+    nameKey: "station.troy",
     from: 0,
-    epithet: "The sails are set",
+    epithetKey: "station.troy.epithet",
     // Cold open sea, warming toward a gold dawn at Ithaca.
     accent: "#7fb8c9",
     accentSoft: "#2b6c86",
   },
   {
     index: 1,
-    name: "The Cyclops' Shore",
+    nameKey: "station.cyclops",
     from: TIERS[0], // 20
-    epithet: "Cunning beats strength",
+    epithetKey: "station.cyclops.epithet",
     accent: "#3f9d8a",
     accentSoft: "#1d5c52",
   },
   {
     index: 2,
-    name: "Circe's Island",
+    nameKey: "station.circe",
     from: TIERS[1], // 100
-    epithet: "A year can vanish here",
+    epithetKey: "station.circe.epithet",
     accent: "#c9a227",
     accentSoft: "#7a5c12",
   },
   {
     index: 3,
-    name: "The Sirens' Strait",
+    nameKey: "station.sirens",
     from: TIERS[2], // 1000
-    epithet: "You hear the song and sail on",
+    epithetKey: "station.sirens.epithet",
     accent: "#d97757",
     accentSoft: "#8c2f39",
   },
   {
     index: 4,
-    name: "Ithaca",
+    nameKey: "station.ithaca",
     from: TIERS[3], // 10000
-    epithet: "The long way home",
+    epithetKey: "station.ithaca.epithet",
     accent: "#e8c46a",
     accentSoft: "#a1741f",
   },

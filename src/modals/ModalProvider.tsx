@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { useT } from '../i18n';
 
 export interface PromptOptions {
   title: string;
@@ -111,6 +112,7 @@ const PromptDialog: React.FC<{
   options: PromptOptions;
   done: (value: string | null) => void;
 }> = ({ options, done }) => {
+  const t = useT();
   const [value, setValue] = useState(options.defaultValue ?? '');
   const field = useRef<HTMLInputElement | HTMLTextAreaElement | null>(null);
 
@@ -133,7 +135,7 @@ const PromptDialog: React.FC<{
 
   return (
     <form onSubmit={submit} className="space-y-4">
-      <h2 className="text-lg font-semibold">{options.title}</h2>
+      <h2 className="font-display text-lg font-semibold">{options.title}</h2>
       {options.label && <p className="text-sm text-gray-400">{options.label}</p>}
 
       {options.multiline ? (
@@ -157,10 +159,10 @@ const PromptDialog: React.FC<{
 
       <div className="flex gap-2">
         <button type="button" onClick={() => done(null)} className="btn btn-outline flex-1">
-          Cancel
+          {t('common.cancel')}
         </button>
         <button type="submit" disabled={!canSubmit} className="btn btn-green flex-1">
-          {options.confirmLabel ?? 'Save'}
+          {options.confirmLabel ?? t('common.save')}
         </button>
       </div>
     </form>
@@ -170,25 +172,29 @@ const PromptDialog: React.FC<{
 const ConfirmDialog: React.FC<{
   options: ConfirmOptions;
   done: (value: boolean) => void;
-}> = ({ options, done }) => (
+}> = ({ options, done }) => {
+  const t = useT();
+
+  return (
   <div className="space-y-4">
-    <h2 className="text-lg font-semibold">{options.title}</h2>
+    <h2 className="font-display text-lg font-semibold">{options.title}</h2>
     {options.body && <p className="text-sm text-gray-400">{options.body}</p>}
 
     <div className="flex gap-2">
       <button onClick={() => done(false)} className="btn btn-outline flex-1">
-        Cancel
+        {t('common.cancel')}
       </button>
       <button
         autoFocus
         onClick={() => done(true)}
         className={`btn flex-1 ${options.danger ? 'btn-red' : 'btn-green'}`}
       >
-        {options.confirmLabel ?? 'OK'}
+        {options.confirmLabel ?? t('common.ok')}
       </button>
     </div>
   </div>
-);
+  );
+};
 
 export const useModal = () => {
   const ctx = useContext(Ctx);

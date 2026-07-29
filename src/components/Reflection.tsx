@@ -3,6 +3,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useGoals } from "../contexts/GoalsContext";
 import { canReflect, trailingMonth, type Reflection as ReflectionType } from "../reflection";
 import { isConfigured, requestReflection } from "../reflectionClient";
+import { useT } from "../i18n";
 
 /**
  * Reads the last month of the user's own notes back to them.
@@ -14,6 +15,7 @@ import { isConfigured, requestReflection } from "../reflectionClient";
 const Reflection = () => {
   const { current, logs } = useGoals();
   const { user } = useAuth();
+  const t = useT();
   const [result, setResult] = useState<ReflectionType | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,6 +27,7 @@ const Reflection = () => {
   const period = trailingMonth(Date.now());
   const input = { goalName: current.name, ...period, logs };
   const readiness = canReflect(input);
+  const readinessMessage = readiness.ready ? "" : t(readiness.key, readiness.params);
 
   const run = async () => {
     setBusy(true);
@@ -32,7 +35,8 @@ const Reflection = () => {
     try {
       setResult(await requestReflection(input));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "The reflection could not be written.");
+      // Worker messages arrive as sentences; our own arrive as keys.
+      setError(e instanceof Error ? t(e.message) : t("reflection.failed"));
     } finally {
       setBusy(false);
     }
@@ -40,22 +44,19 @@ const Reflection = () => {
 
   return (
     <section id="reflection" className="card flex flex-col gap-3">
-      <h2 className="section-title">Reflection</h2>
+      <h2 className="section-title">{t("reflection.title")}</h2>
 
       {!readiness.ready ? (
-        <p className="text-sm text-gray-400">{readiness.reason}</p>
+        <p className="text-sm text-gray-400">{readinessMessage}</p>
       ) : (
         <>
           <p className="text-sm text-gray-400">
-            Read the last 30 days of your own notes back to you.{" "}
-            <span className="text-gray-500">
-              Your notes for this period are sent to OpenAI to write it. Nothing is sent
-              until you ask.
-            </span>
+            {t("reflection.pitch")}{" "}
+            <span className="text-gray-500">{t("reflection.privacy")}</span>
           </p>
 
           <button onClick={run} disabled={busy} className="btn btn-blue self-start">
-            {busy ? "Reading your notes…" : result ? "Reflect again" : "Reflect on the month"}
+            {busy ? t("reflection.busy") : result ? t("reflection.again") : t("reflection.run")}
           </button>
         </>
       )}

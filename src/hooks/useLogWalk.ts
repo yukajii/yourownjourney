@@ -1,6 +1,7 @@
 import { useGoals } from "../contexts/GoalsContext";
 import { fmt } from "../format";
 import { useModal } from "../modals/ModalProvider";
+import { useT } from "../i18n";
 
 /**
  * Asks what was accomplished, then records the time.
@@ -13,15 +14,16 @@ import { useModal } from "../modals/ModalProvider";
 export const useLogWalk = () => {
   const { pushLog } = useGoals();
   const { prompt } = useModal();
+  const t = useT();
 
   return async (durationSec: number, options: { title: string; goalId?: string }) => {
     if (durationSec <= 0) return;
 
     const note = await prompt({
       title: options.title,
-      label: `${fmt(durationSec)} — what did you accomplish?`,
-      placeholder: "Optional",
-      confirmLabel: "Log it",
+      label: t("session.notePrompt", { duration: fmt(durationSec) }),
+      placeholder: t("session.noteOptional"),
+      confirmLabel: t("session.logIt"),
       multiline: true,
       allowEmpty: true,
     });

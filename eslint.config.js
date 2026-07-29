@@ -25,11 +25,22 @@ export default tseslint.config([
   {
     // A provider and its own accessor hook belong together; splitting them
     // across files would serve nothing but the fast-refresh heuristic.
-    files: ['src/contexts/*.tsx', 'src/modals/*.tsx'],
+    files: ['src/contexts/*.tsx', 'src/modals/*.tsx', 'src/i18n/*.tsx'],
     rules: {
       'react-refresh/only-export-components': [
         'warn',
-        { allowExportNames: ['useAuth', 'useGoals', 'useSession', 'useModal', 'fmt'] },
+        {
+          allowExportNames: [
+            'useAuth',
+            'useGoals',
+            'useSession',
+            'useModal',
+            'useI18n',
+            'useT',
+            'CATALOGUES',
+            'fmt',
+          ],
+        },
       ],
     },
   },

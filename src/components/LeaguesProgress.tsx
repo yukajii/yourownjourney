@@ -2,9 +2,10 @@ import { useGoals } from "../contexts/GoalsContext";
 import { useSession } from "../contexts/SessionContext";
 import { nextTier, pacePerWeek, projectArrival, waypointProgress } from "../journey";
 import Trail from "./Trail";
+import { useI18n } from "../i18n";
 
-const arrival = (ms: number) =>
-  new Date(ms).toLocaleDateString(undefined, {
+const arrival = (ms: number, locale: string) =>
+  new Date(ms).toLocaleDateString(locale, {
     day: "numeric",
     month: "short",
     year: new Date(ms).getFullYear() === new Date().getFullYear() ? undefined : "numeric",
@@ -19,6 +20,7 @@ const round = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2));
 const LeaguesProgress = () => {
   const { current, logs } = useGoals();
   const { isActive, seconds } = useSession();
+  const { t, locale } = useI18n();
   if (!current) return null;
 
   // Count the running session so the trail advances live.
@@ -42,7 +44,7 @@ const LeaguesProgress = () => {
           <span className="font-display text-2xl font-semibold tabular-nums text-[color:var(--ink)]">
             {leagues.toFixed(2)}
           </span>{" "}
-          Leagues walked
+          {t("progress.walked")}
         </span>
         <span>{round(to)}</span>
       </div>
@@ -56,15 +58,19 @@ const LeaguesProgress = () => {
 
       <div className="flex flex-col gap-1 text-sm">
         <p className="text-gray-400">
-          {remaining.toFixed(2)} to {toIsTier ? "the next tier" : "the next waypoint"}
-          {eta && <span className="text-gray-500"> — around {arrival(eta)}</span>}
+          {toIsTier
+            ? t("progress.toNextTier", { n: remaining.toFixed(2) })
+            : t("progress.toNextWaypoint", { n: remaining.toFixed(2) })}
+          {eta && (
+            <span className="text-gray-500"> — {t("progress.around", { date: arrival(eta, locale) })}</span>
+          )}
         </p>
 
         {pace > 0 && (
           <p className="text-gray-500">
-            {pace.toFixed(1)} Leagues a week
+            {t("progress.pace", { n: pace.toFixed(1) })}
             {tier !== null && !toIsTier && tierEta && (
-              <> — {tier} Leagues by {arrival(tierEta)}</>
+              <> — {t("progress.tierBy", { tier, date: arrival(tierEta, locale) })}</>
             )}
           </p>
         )}

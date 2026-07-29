@@ -21,12 +21,12 @@ export class ReflectionError extends Error {}
 
 export const requestReflection = async (input: ReflectionInput): Promise<Reflection> => {
   if (!isConfigured()) {
-    throw new ReflectionError("Reflections are not set up for this build.");
+    throw new ReflectionError("reflection.notConfigured");
   }
 
   const user = auth.currentUser;
   if (!user) {
-    throw new ReflectionError("Sign in to request a reflection.");
+    throw new ReflectionError("reflection.signIn");
   }
 
   // The Worker verifies this against Google's public keys before spending the
@@ -45,15 +45,17 @@ export const requestReflection = async (input: ReflectionInput): Promise<Reflect
 
   if (!res.ok) {
     const detail = await res.json().catch(() => null);
+    // The Worker's own message is already a sentence, so it is passed through;
+    // otherwise fall back to a key the UI can translate.
     throw new ReflectionError(
-      (detail as { error?: string } | null)?.error ?? "The reflection could not be written."
+      (detail as { error?: string } | null)?.error ?? "reflection.failed"
     );
   }
 
   const body = (await res.json()) as { reflection?: unknown };
   const reflection = parseReflection(body.reflection);
   if (!reflection) {
-    throw new ReflectionError("The reflection came back in a shape we could not read.");
+    throw new ReflectionError("reflection.malformed");
   }
   return reflection;
 };

@@ -51,7 +51,7 @@ const withMentor = (html: string) => `
   </div>
 `;
 
-export async function maybeRunIntroTour() {
+export async function maybeRunIntroTour(t: (key: string) => string) {
   if (tourRunning) return;
   if (localStorage.getItem(TOUR_KEY)) return;
 
@@ -75,48 +75,34 @@ export async function maybeRunIntroTour() {
     showProgress: true,
     showBullets: false,
     scrollToElement: true,       // ✦ auto-scroll enabled
-    nextLabel: 'Next',
-    prevLabel: 'Back',
-    doneLabel: 'Begin the walk',
+    nextLabel: t('tour.next'),
+    prevLabel: t('tour.back'),
+    doneLabel: t('tour.done'),
     steps: [
       {
-        intro: withMentor(
-          '<b>Welcome, seeker of mastery.</b><br>' +
-          'A <em>league</em> is the distance a person can walk in one focused hour.<br>' +
-          'Your journey begins now.',
-        ),
+        intro: withMentor(t('tour.welcome')),
       },
       {
         element: '#goal-manager',
-        intro: withMentor(
-          'Click “➕ New” to set your first goal. Every journey needs a destination.',
-        ),
+        intro: withMentor(t('tour.goal')),
         disableInteraction: false,    // let user press the button
       },
       {
         element: '#session-timer',
-        intro: withMentor(
-          'Start the timer to walk your leagues. Stay focused – each second matters.',
-        ),
+        intro: withMentor(t('tour.timer')),
       },
       {
         element: '#pomodoro-section',
-        intro: withMentor(
-          'Pomodoro cycles keep your stride steady – effort balanced with rest.',
-        ),
+        intro: withMentor(t('tour.pomodoro')),
       },
       {
         /* Logbook step: waits until #logs-section exists */
         element: '#logs-section',
-        intro: withMentor(
-          'This is your logbook. Reflect on your steps and learn from them.',
-        ),
+        intro: withMentor(t('tour.logs')),
       },
       {
         element: '#stoic-mentor',
-        intro: withMentor(
-          'I dwell here. Tap me anytime for calm, practical counsel.',
-        ),
+        intro: withMentor(t('tour.mentor')),
       },
     ],
   });

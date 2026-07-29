@@ -1,17 +1,19 @@
 import { useGoals } from "../contexts/GoalsContext";
 import { useModal } from "../modals/ModalProvider";
+import { useT } from "../i18n";
 
 const GoalManager = () => {
   const { goals, currentGoalId, current, createGoal, renameGoal, deleteGoal, setCurrentGoal } =
     useGoals();
   const { prompt, confirm } = useModal();
+  const t = useT();
 
   const handleCreate = async () => {
     const name = await prompt({
-      title: "New goal",
-      label: "What are you walking toward?",
-      placeholder: "e.g. Learn Japanese",
-      confirmLabel: "Create",
+      title: t("goals.newTitle"),
+      label: t("goals.newLabel"),
+      placeholder: t("goals.newPlaceholder"),
+      confirmLabel: t("goals.create"),
     });
     if (name) createGoal(name);
   };
@@ -19,9 +21,9 @@ const GoalManager = () => {
   const handleRename = async () => {
     if (!current) return;
     const name = await prompt({
-      title: "Rename goal",
+      title: t("goals.renameTitle"),
       defaultValue: current.name,
-      confirmLabel: "Rename",
+      confirmLabel: t("goals.rename"),
     });
     if (name) renameGoal(current.id, name);
   };
@@ -29,9 +31,9 @@ const GoalManager = () => {
   const handleDelete = async () => {
     if (!current) return;
     const ok = await confirm({
-      title: `Delete “${current.name}”?`,
-      body: "Its logged time and notes go with it. This cannot be undone.",
-      confirmLabel: "Delete",
+      title: t("goals.deleteTitle", { name: current.name }),
+      body: t("goals.deleteBody"),
+      confirmLabel: t("goals.delete"),
       danger: true,
     });
     if (ok) deleteGoal(current.id);
@@ -45,11 +47,11 @@ const GoalManager = () => {
       id="goal-manager"
       className={`flex flex-col gap-4 ${goals.length === 0 ? "card" : "card-quiet"}`}
     >
-      <h2 className="section-title">Goals</h2>
+      <h2 className="section-title">{t("goals.title")}</h2>
 
       {goals.length > 0 ? (
         <select
-          aria-label="Current goal"
+          aria-label={t("goals.current")}
           className="rounded border border-white/10 bg-[color:var(--surface-alt)] p-2 text-gray-100 focus:outline-none"
           value={currentGoalId ?? ""}
           onChange={(e) => setCurrentGoal(e.target.value)}
@@ -61,18 +63,18 @@ const GoalManager = () => {
           ))}
         </select>
       ) : (
-        <p className="text-sm text-gray-400">No goals yet – create one!</p>
+        <p className="text-sm text-gray-400">{t("goals.empty")}</p>
       )}
 
       <div className="flex gap-2">
         <button onClick={handleCreate} className="btn btn-green flex-1">
-          ➕ New
+          ➕ {t("goals.new")}
         </button>
         <button onClick={handleRename} className="btn btn-blue flex-1" disabled={!current}>
-          ✏️ Rename
+          ✏️ {t("goals.rename")}
         </button>
         <button onClick={handleDelete} className="btn btn-red flex-1" disabled={!current}>
-          🗑️ Delete
+          🗑️ {t("goals.delete")}
         </button>
       </div>
     </section>

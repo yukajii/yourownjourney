@@ -9,6 +9,7 @@ export { default as Pomodoro }         from "./Pomodoro";
 export { default as Logs }             from "./Logs";
 export { default as GoalManager }      from "./GoalManager";
 export { default as Reflection }       from "./Reflection";
+export { default as LanguagePicker }   from "./LanguagePicker";
 export { default as ExportData }       from "./ExportData";
 export { default as ResetAll }         from "./ResetAll";
 export { default as InstallPrompt }    from "./InstallPrompt";

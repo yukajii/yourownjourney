@@ -20,7 +20,7 @@ describe("TIER_STAGES", () => {
   });
 
   it("gives every stage a distinct name and accent", () => {
-    expect(new Set(TIER_STAGES.map((s) => s.name)).size).toBe(TIER_STAGES.length);
+    expect(new Set(TIER_STAGES.map((s) => s.nameKey)).size).toBe(TIER_STAGES.length);
     expect(new Set(TIER_STAGES.map((s) => s.accent)).size).toBe(TIER_STAGES.length);
   });
 
@@ -34,36 +34,36 @@ describe("TIER_STAGES", () => {
 
 describe("tierForLeagues", () => {
   it("starts at Troy", () => {
-    expect(tierForLeagues(0).name).toBe("Troy");
-    expect(tierForLeagues(19.99).name).toBe("Troy");
+    expect(tierForLeagues(0).nameKey).toBe("station.troy");
+    expect(tierForLeagues(19.99).nameKey).toBe("station.troy");
   });
 
   it("changes station exactly on the threshold, not after it", () => {
-    expect(tierForLeagues(20).name).toBe("The Cyclops' Shore");
-    expect(tierForLeagues(100).name).toBe("Circe's Island");
-    expect(tierForLeagues(1000).name).toBe("The Sirens' Strait");
-    expect(tierForLeagues(10_000).name).toBe("Ithaca");
+    expect(tierForLeagues(20).nameKey).toBe("station.cyclops");
+    expect(tierForLeagues(100).nameKey).toBe("station.circe");
+    expect(tierForLeagues(1000).nameKey).toBe("station.sirens");
+    expect(tierForLeagues(10_000).nameKey).toBe("station.ithaca");
   });
 
   it("stays at Ithaca however far past it you sail", () => {
-    expect(tierForLeagues(50_000).name).toBe("Ithaca");
+    expect(tierForLeagues(50_000).nameKey).toBe("station.ithaca");
   });
 
   it("treats a negative total as the beginning rather than throwing", () => {
-    expect(tierForLeagues(-5).name).toBe("Troy");
+    expect(tierForLeagues(-5).nameKey).toBe("station.troy");
   });
 });
 
 describe("tierForSeconds", () => {
   it("converts before deciding", () => {
-    expect(tierForSeconds(hours(19)).name).toBe("Troy");
-    expect(tierForSeconds(hours(20)).name).toBe("The Cyclops' Shore");
+    expect(tierForSeconds(hours(19)).nameKey).toBe("station.troy");
+    expect(tierForSeconds(hours(20)).nameKey).toBe("station.cyclops");
   });
 });
 
 describe("nextStage", () => {
   it("points at the station ahead", () => {
-    expect(nextStage(TIER_STAGES[0])?.name).toBe("The Cyclops' Shore");
+    expect(nextStage(TIER_STAGES[0])?.nameKey).toBe("station.cyclops");
   });
 
   it("is null at the end of the road", () => {

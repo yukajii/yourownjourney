@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { fromDateTimeInput, toDateTimeInput } from "../format";
 import type { Log } from "../models";
+import { useT } from "../i18n";
 
 export type LogDraft = { timestamp: number; durationSec: number; note: string };
 
@@ -23,6 +24,7 @@ const LogEditor = ({
   existing?: Log;
   done: (draft: LogDraft | null) => void;
 }) => {
+  const t = useT();
   const [when, setWhen] = useState(() => toDateTimeInput(existing?.timestamp ?? Date.now()));
   const [hours, setHours] = useState(() =>
     existing ? String(Math.floor(existing.durationSec / 3600)) : "1"
@@ -48,16 +50,16 @@ const LogEditor = ({
   return (
     <form onSubmit={submit} className="space-y-4">
       <h2 className="text-lg font-semibold">
-        {existing ? "Edit entry" : "Add walked time"}
+        {existing ? t("editor.editTitle") : t("editor.addTitle")}
       </h2>
       {!existing && (
         <p className="text-sm text-gray-400">
-          For a stretch of focused work you did not time.
+          {t("editor.addHint")}
         </p>
       )}
 
       <label className="block space-y-1">
-        <span className="text-sm text-gray-400">When</span>
+        <span className="text-sm text-gray-400">{t("editor.when")}</span>
         <input
           type="datetime-local"
           value={when}
@@ -68,7 +70,7 @@ const LogEditor = ({
       </label>
 
       <fieldset className="space-y-1">
-        <legend className="text-sm text-gray-400">How long</legend>
+        <legend className="text-sm text-gray-400">{t("editor.howLong")}</legend>
         <div className="flex items-center gap-2">
           <input
             type="number"
@@ -76,47 +78,47 @@ const LogEditor = ({
             max={24}
             value={hours}
             onChange={(e) => setHours(e.target.value)}
-            aria-label="Hours"
+            aria-label={t("editor.hours")}
             className={`${field} w-20`}
           />
-          <span className="text-sm text-gray-400">h</span>
+          <span className="text-sm text-gray-400">{t("editor.h")}</span>
           <input
             type="number"
             min={0}
             max={59}
             value={minutes}
             onChange={(e) => setMinutes(e.target.value)}
-            aria-label="Minutes"
+            aria-label={t("editor.minutes")}
             className={`${field} w-20`}
           />
-          <span className="text-sm text-gray-400">m</span>
+          <span className="text-sm text-gray-400">{t("editor.m")}</span>
         </div>
       </fieldset>
 
       <label className="block space-y-1">
-        <span className="text-sm text-gray-400">What did you accomplish?</span>
+        <span className="text-sm text-gray-400">{t("editor.accomplished")}</span>
         <textarea
           rows={3}
           value={note}
-          placeholder="Optional"
+          placeholder={t("session.noteOptional")}
           onChange={(e) => setNote(e.target.value)}
           className={field}
         />
       </label>
 
       {inFuture && (
-        <p className="text-sm text-red-400">You cannot log a walk you have not taken yet.</p>
+        <p className="text-sm text-red-400">{t("editor.future")}</p>
       )}
       {!inFuture && durationSec === 0 && (
-        <p className="text-sm text-gray-500">Set a duration to save.</p>
+        <p className="text-sm text-gray-500">{t("editor.setDuration")}</p>
       )}
 
       <div className="flex gap-2">
         <button type="button" onClick={() => done(null)} className="btn btn-outline flex-1">
-          Cancel
+          {t("common.cancel")}
         </button>
         <button type="submit" disabled={!canSubmit} className="btn btn-green flex-1">
-          {existing ? "Save" : "Add"}
+          {existing ? t("editor.save") : t("editor.add")}
         </button>
       </div>
     </form>

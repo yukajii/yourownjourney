@@ -2,6 +2,8 @@ import { useMemo } from "react";
 import { useGoals } from "../contexts/GoalsContext";
 import { humanDuration } from "../format";
 import { currentStreak, heatmapWeeks, type HeatCell } from "../journey";
+import { useI18n } from "../i18n";
+import type { Translator } from "../i18n/translate";
 
 const WEEKS = 26;
 
@@ -42,19 +44,19 @@ const jitter = (key: string) => {
   };
 };
 
-const dayLabel = (ms: number) =>
-  new Date(ms).toLocaleDateString(undefined, { day: "numeric", month: "short" });
+const dayLabel = (ms: number, locale: string) =>
+  new Date(ms).toLocaleDateString(locale, { day: "numeric", month: "short" });
 
-const Tile = ({ cell }: { cell: HeatCell }) => {
+const Tile = ({ cell, t, locale }: { cell: HeatCell; t: Translator; locale: string }) => {
   const { dx, dy, rot, scale } = jitter(cell.key);
 
   return (
     <div
       title={
         cell.inFuture
-          ? dayLabel(cell.ms)
-          : `${dayLabel(cell.ms)} — ${
-              cell.seconds > 0 ? humanDuration(cell.seconds) : "nothing walked"
+          ? dayLabel(cell.ms, locale)
+          : `${dayLabel(cell.ms, locale)} — ${
+              cell.seconds > 0 ? humanDuration(cell.seconds) : t("journey.nothingWalked")
             }`
       }
       style={{
@@ -84,6 +86,7 @@ const Tile = ({ cell }: { cell: HeatCell }) => {
  */
 const Journey = () => {
   const { current, logs } = useGoals();
+  const { t, locale } = useI18n();
 
   const grid = useMemo(() => heatmapWeeks(logs, Date.now(), WEEKS), [logs]);
   const streak = useMemo(() => currentStreak(logs), [logs]);
@@ -98,7 +101,7 @@ const Journey = () => {
     const prev = i > 0 ? new Date(grid[i - 1][0].ms) : null;
     return prev && prev.getMonth() === first.getMonth()
       ? null
-      : first.toLocaleDateString(undefined, { month: "short" });
+      : first.toLocaleDateString(locale, { month: "short" });
   });
 
   const column = TILE + GROUT;
@@ -106,11 +109,11 @@ const Journey = () => {
   return (
     <section id="journey" className="card flex flex-col gap-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <h2 className="section-title">Journey</h2>
+        <h2 className="section-title">{t("journey.title")}</h2>
         <span className="text-sm text-gray-400">
-          {streak > 0 ? `${streak} day streak` : "No streak yet"}
+          {streak > 0 ? t("journey.streak", { count: streak }) : t("journey.noStreak")}
           {" · "}
-          {daysWalked} {daysWalked === 1 ? "day" : "days"} in {WEEKS} weeks
+          {t("journey.daysIn", { count: daysWalked, weeks: WEEKS })}
         </span>
       </div>
 
@@ -142,7 +145,7 @@ const Journey = () => {
             {grid.map((week, w) => (
               <div key={w} className="flex flex-col" style={{ gap: GROUT }}>
                 {week.map((cell) => (
-                  <Tile key={cell.key} cell={cell} />
+                  <Tile key={cell.key} cell={cell} t={t} locale={locale} />
                 ))}
               </div>
             ))}
@@ -151,14 +154,14 @@ const Journey = () => {
       </div>
 
       <div className="flex items-center gap-1.5 text-xs text-gray-500">
-        <span>Less</span>
+        <span>{t("journey.less")}</span>
         {([0, 1, 2, 3, 4] as const).map((l) => (
           <span
             key={l}
             style={{ width: 11, height: 11, background: FILL[l], borderRadius: 2 }}
           />
         ))}
-        <span>More</span>
+        <span>{t("journey.more")}</span>
       </div>
     </section>
   );

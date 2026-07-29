@@ -1,5 +1,6 @@
 import { useGoals } from "../contexts/GoalsContext";
 import { useSession } from "../contexts/SessionContext";
+import { useT } from "../i18n";
 import { tierForSeconds } from "../tiers";
 
 /**
@@ -12,6 +13,7 @@ import { tierForSeconds } from "../tiers";
 const GoalHeader = () => {
   const { current, loading } = useGoals();
   const { isActive, seconds } = useSession();
+  const t = useT();
 
   if (loading) {
     return <div className="h-9 w-2/3 animate-pulse rounded bg-white/10" aria-hidden />;
@@ -19,8 +21,8 @@ const GoalHeader = () => {
 
   if (!current) {
     return (
-      <h1 className="text-2xl font-semibold tracking-tight text-gray-300">
-        No goal selected
+      <h1 className="font-display text-2xl font-semibold text-gray-300">
+        {t("session.noGoal")}
       </h1>
     );
   }
@@ -33,8 +35,10 @@ const GoalHeader = () => {
         {current.name}
       </h1>
       <p className="flex flex-wrap items-baseline gap-x-2 text-sm">
-        <span className="font-display text-base text-[color:var(--accent)]">{tier.name}</span>
-        <span className="text-gray-500">— {tier.epithet}</span>
+        <span className="font-display text-base text-[color:var(--accent)]">
+          {t(tier.nameKey)}
+        </span>
+        <span className="text-gray-500">— {t(tier.epithetKey)}</span>
       </p>
     </div>
   );

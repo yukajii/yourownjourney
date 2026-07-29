@@ -3,6 +3,7 @@ import { useSession } from "../contexts/SessionContext";
 import { fmt } from "../format";
 import { useGoals } from "../contexts/GoalsContext";
 import { useLogWalk } from "../hooks/useLogWalk";
+import { useT } from "../i18n";
 import FootstepStrip from "./FootstepStrip";
 import GoalHeader from "./GoalHeader";
 import LeaguesProgress from "./LeaguesProgress";
@@ -18,12 +19,13 @@ const SessionTimer: React.FC = () => {
   const { isActive, seconds, canStart, start, stop } = useSession();
   const { current } = useGoals();
   const logWalk = useLogWalk();
+  const t = useT();
 
   const handleStop = async () => {
     const stopped = stop();
     if (!stopped) return;
     await logWalk(stopped.durationSec, {
-      title: "Session complete",
+      title: t("session.complete"),
       goalId: stopped.goalId,
     });
   };
@@ -47,11 +49,11 @@ const SessionTimer: React.FC = () => {
           disabled={!isActive && !canStart}
           className={`btn w-full max-w-xs text-base ${isActive ? "btn-red" : "btn-green"}`}
         >
-          {isActive ? "Stop" : "Start walking"}
+          {isActive ? t("session.stop") : t("session.start")}
         </button>
 
         {!canStart && (
-          <p className="text-sm text-gray-500">Create a goal to start walking.</p>
+          <p className="text-sm text-gray-500">{t("session.needGoal")}</p>
         )}
       </div>
 

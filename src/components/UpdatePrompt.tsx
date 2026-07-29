@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
+import { useT } from "../i18n";
 
 /**
  * Surfaces service-worker state: a one-off "ready to work offline" note and,
@@ -12,6 +13,7 @@ const UpdatePrompt = () => {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW();
+  const t = useT();
 
   const showing = offlineReady || needRefresh;
 
@@ -40,9 +42,7 @@ const UpdatePrompt = () => {
     >
       <div className="card flex items-center gap-3 text-sm shadow-lg">
         <span className="flex-1">
-          {needRefresh
-            ? "A new version of Leagues is ready."
-            : "Leagues is installed and works offline."}
+          {needRefresh ? t("update.ready") : t("update.offlineReady")}
         </span>
 
         {needRefresh && (
@@ -50,13 +50,13 @@ const UpdatePrompt = () => {
             onClick={() => updateServiceWorker(true)}
             className="btn btn-blue px-3 py-1"
           >
-            Reload
+            {t("update.reload")}
           </button>
         )}
 
         <button
           onClick={dismiss}
-          aria-label="Dismiss"
+          aria-label={t("update.dismiss")}
           className="btn btn-outline px-3 py-1"
         >
           ✕

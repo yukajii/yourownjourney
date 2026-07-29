@@ -43,7 +43,8 @@ export const notedLogs = (logs: Log[]): Log[] =>
 
 export type Readiness =
   | { ready: true }
-  | { ready: false; reason: string };
+  /** A translation key and its values, so the reason can be localised. */
+  | { ready: false; key: string; params?: Record<string, number> };
 
 /**
  * Whether a reflection is worth asking for. Checked before the request rather
@@ -52,18 +53,9 @@ export type Readiness =
 export const canReflect = (input: ReflectionInput): Readiness => {
   const noted = notedLogs(periodLogs(input.logs, input.from, input.to));
 
-  if (noted.length === 0) {
-    return {
-      ready: false,
-      reason:
-        "None of this period's sessions carry a note. The reflection reads your notes back to you, so there is nothing yet to read.",
-    };
-  }
+  if (noted.length === 0) return { ready: false, key: "reflection.noNotes" };
   if (noted.length < MIN_NOTES) {
-    return {
-      ready: false,
-      reason: `Only ${noted.length} of this period's sessions carry a note. Write a few more and there will be a thread worth pulling.`,
-    };
+    return { ready: false, key: "reflection.tooFew", params: { count: noted.length } };
   }
   return { ready: true };
 };

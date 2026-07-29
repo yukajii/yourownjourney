@@ -1,16 +1,17 @@
 import { useGoals } from "../contexts/GoalsContext";
 import { useModal } from "../modals/ModalProvider";
+import { useT } from "../i18n";
 
 const ResetAll = () => {
   const { resetAll, goals } = useGoals();
   const { confirm } = useModal();
+  const t = useT();
 
   const handleReset = async () => {
     const ok = await confirm({
-      title: "Delete everything?",
-      body: `All ${goals.length} goal${goals.length === 1 ? "" : "s"}, their logged time and ` +
-        "every note will be erased here and in the cloud. This cannot be undone.",
-      confirmLabel: "Erase it all",
+      title: t("reset.title"),
+      body: t("reset.body", { count: goals.length }),
+      confirmLabel: t("reset.confirm"),
       danger: true,
     });
     if (ok) await resetAll();
@@ -21,7 +22,7 @@ const ResetAll = () => {
   return (
     <section className="flex flex-col gap-3">
       <button onClick={handleReset} className="btn btn-outline w-full text-red-400">
-        🔥 Reset everything
+        🔥 {t("reset.button")}
       </button>
     </section>
   );

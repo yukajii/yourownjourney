@@ -55,13 +55,17 @@ describe("canReflect", () => {
   it("refuses when nothing carries a note", () => {
     const r = canReflect(input([log(1, ""), log(2, "")]));
     expect(r.ready).toBe(false);
-    if (!r.ready) expect(r.reason).toMatch(/nothing yet to read/i);
+    if (!r.ready) expect(r.key).toBe("reflection.noNotes");
   });
 
   it("refuses when there is too little to work with", () => {
     const r = canReflect(input([log(1, "one"), log(2, "two")]));
     expect(r.ready).toBe(false);
-    if (!r.ready) expect(r.reason).toContain("2");
+    if (!r.ready) {
+      expect(r.key).toBe("reflection.tooFew");
+      // The count is passed through so the message can pluralise it.
+      expect(r.params?.count).toBe(2);
+    }
   });
 
   it("allows once there are enough notes", () => {

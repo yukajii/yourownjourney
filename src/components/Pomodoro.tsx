@@ -4,17 +4,19 @@ import { mmss } from "../format";
 import { useGoals } from "../contexts/GoalsContext";
 import { useSession } from "../contexts/SessionContext";
 import { useLogWalk } from "../hooks/useLogWalk";
+import { useT } from "../i18n";
 
-const PHASE_LABEL = {
-  idle: "Ready when you are",
-  focus: "Focusing",
-  break: "On a break",
+const PHASE_KEY = {
+  idle: "pomodoro.idle",
+  focus: "pomodoro.focusing",
+  break: "pomodoro.onBreak",
 } as const;
 
 const Pomodoro = () => {
   const { current } = useGoals();
   const { isActive } = useSession();
   const logWalk = useLogWalk();
+  const t = useT();
   const [showSettings, setShowSettings] = useState(false);
 
   const { phase, secondsLeft, settings, setSettings, startFocus, takeBreak, backToWork, stop } =
@@ -25,7 +27,7 @@ const Pomodoro = () => {
         // Except while the session timer is already running: it is measuring
         // the same minutes, and logging both would count that hour twice.
         if (!settings.linkSessions || !current || isActive) return;
-        void logWalk(elapsedSec, { title: "Focus block complete" });
+        void logWalk(elapsedSec, { title: t("pomodoro.blockComplete") });
       },
     });
 
@@ -35,10 +37,11 @@ const Pomodoro = () => {
   return (
     <section id="pomodoro-section" className="card flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <h2 className="section-title">Pomodoro</h2>
+        <h2 className="section-title">{t("pomodoro.title")}</h2>
         <button
           onClick={() => setShowSettings((s) => !s)}
           aria-expanded={showSettings}
+          aria-label={t("pomodoro.settings")}
           className="btn btn-outline px-2 py-1 text-sm"
         >
           ⚙️
@@ -52,7 +55,7 @@ const Pomodoro = () => {
       {showSettings && (
         <div className="flex flex-wrap gap-4 rounded border border-white/10 p-3 text-sm">
           <label className="flex items-center gap-2">
-            Focus
+            {t("pomodoro.focusLabel")}
             <input
               type="number"
               min={1}
@@ -63,10 +66,10 @@ const Pomodoro = () => {
               }
               className={numberField}
             />
-            min
+            {t("pomodoro.minutes")}
           </label>
           <label className="flex items-center gap-2">
-            Break
+            {t("pomodoro.breakLabel")}
             <input
               type="number"
               min={1}
@@ -75,7 +78,7 @@ const Pomodoro = () => {
               onChange={(e) => setSettings({ ...settings, breakMinutes: Number(e.target.value) })}
               className={numberField}
             />
-            min
+            {t("pomodoro.minutes")}
           </label>
 
           <label className="flex w-full items-start gap-2">
@@ -86,10 +89,9 @@ const Pomodoro = () => {
               className="mt-0.5"
             />
             <span>
-              Count focus blocks as Leagues walked
+              {t("pomodoro.countAsLeagues")}
               <span className="block text-xs text-gray-500">
-                Skipped while the session timer is running, so an hour is never
-                counted twice.
+                {t("pomodoro.countAsLeaguesHelp")}
               </span>
             </span>
           </label>
@@ -99,17 +101,17 @@ const Pomodoro = () => {
       <div className="flex flex-wrap gap-2">
         {phase === "idle" && (
           <button onClick={startFocus} className="btn btn-green flex-1">
-            Start Focus
+            {t("pomodoro.startFocus")}
           </button>
         )}
 
         {phase === "focus" && (
           <>
             <button onClick={takeBreak} className="btn btn-blue flex-1">
-              Take Break
+              {t("pomodoro.takeBreak")}
             </button>
             <button onClick={stop} className="btn btn-red flex-1">
-              Stop
+              {t("pomodoro.stop")}
             </button>
           </>
         )}
@@ -117,16 +119,16 @@ const Pomodoro = () => {
         {phase === "break" && (
           <>
             <button onClick={backToWork} className="btn btn-green flex-1">
-              Back to Work
+              {t("pomodoro.backToWork")}
             </button>
             <button onClick={stop} className="btn btn-red flex-1">
-              Stop
+              {t("pomodoro.stop")}
             </button>
           </>
         )}
       </div>
 
-      <div className="text-sm text-gray-400">{PHASE_LABEL[phase]}</div>
+      <div className="text-sm text-gray-400">{t(PHASE_KEY[phase])}</div>
     </section>
   );
 };
