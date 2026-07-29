@@ -39,7 +39,7 @@ const LeaguesProgress = () => {
       <div className="flex items-baseline justify-between font-mono text-xs text-gray-500">
         <span>{round(from)}</span>
         <span className="text-gray-300">
-          <span className="text-lg font-semibold tabular-nums text-gray-100">
+          <span className="font-display text-2xl font-semibold tabular-nums text-[color:var(--ink)]">
             {leagues.toFixed(2)}
           </span>{" "}
           Leagues walked

@@ -126,6 +126,28 @@ a session. `mentor.test.ts` asserts the invariant directly across a range of
 states — no absence line when today is walked, no streak claim without a
 streak, no pace claim without movement.
 
+### The wine-dark sea
+
+The ground was a neutral near-black — the default of every dark dashboard ever
+shipped, and it read as exactly that. It is a warm violet now, after Homer's
+οἶνοψ πόντος, still dark enough to sit in front of for an hour.
+
+Typography is split by job: **Spectral** for anything that speaks — the goal,
+the station, both clocks, the leagues figure — and **Inter** for anything that
+labels. Long serif UI copy at 13px on a phone is harder to read, and this app
+lives on phones. Both are self-hosted; the previous `@font-face` pointed at
+rsms.me and simply failed with no connection.
+
+The station colours walk from cold open sea through verdigris and bronze to a
+gold dawn at Ithaca. Every one clears 5.8:1 against the ground. The primary
+button uses a darker verdigris than the accent does, because white on the
+bright shade is 3.3:1 and fails AA at 16px.
+
+Two textures do the rest: a generated grain at 3.5% over everything, since
+perfectly flat fills are the tell of a template, and a single meander — the
+Greek key — as the divider in the hero. One ornament, used once. The discipline
+is the point; this style goes kitsch the moment there are laurel wreaths too.
+
 ### Look and hierarchy
 
 Eight sections once shared one `.card` recipe and one heading size, so the

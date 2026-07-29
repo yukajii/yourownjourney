@@ -29,40 +29,41 @@ export const TIER_STAGES: Tier[] = [
     name: "Troy",
     from: 0,
     epithet: "The sails are set",
-    accent: "#7dd3fc",
-    accentSoft: "#0284c7",
+    // Cold open sea, warming toward a gold dawn at Ithaca.
+    accent: "#7fb8c9",
+    accentSoft: "#2b6c86",
   },
   {
     index: 1,
     name: "The Cyclops' Shore",
     from: TIERS[0], // 20
     epithet: "Cunning beats strength",
-    accent: "#41d1ff",
-    accentSoft: "#1368d6",
+    accent: "#3f9d8a",
+    accentSoft: "#1d5c52",
   },
   {
     index: 2,
     name: "Circe's Island",
     from: TIERS[1], // 100
     epithet: "A year can vanish here",
-    accent: "#fbbf24",
-    accentSoft: "#b45309",
+    accent: "#c9a227",
+    accentSoft: "#7a5c12",
   },
   {
     index: 3,
     name: "The Sirens' Strait",
     from: TIERS[2], // 1000
     epithet: "You hear the song and sail on",
-    accent: "#fb7185",
-    accentSoft: "#9f1239",
+    accent: "#d97757",
+    accentSoft: "#8c2f39",
   },
   {
     index: 4,
     name: "Ithaca",
     from: TIERS[3], // 10000
     epithet: "The long way home",
-    accent: "#c4b5fd",
-    accentSoft: "#6d28d9",
+    accent: "#e8c46a",
+    accentSoft: "#a1741f",
   },
 ];
 

@@ -13,7 +13,7 @@ const Landing = () => (
     <div className="flex flex-col gap-3">
       <p className="section-title mx-auto">A focus tracker shaped like the Odyssey</p>
 
-      <h1 className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
+      <h1 className="font-display text-4xl font-semibold leading-tight sm:text-5xl">
         Ten years is a long voyage.
         <br />
         Count it in leagues.

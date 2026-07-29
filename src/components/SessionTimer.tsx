@@ -34,7 +34,7 @@ const SessionTimer: React.FC = () => {
 
       <div className="flex flex-col items-center gap-3">
         <div
-          className="font-mono text-5xl leading-none tracking-tight tabular-nums sm:text-6xl"
+          className="font-display text-6xl leading-none tabular-nums sm:text-7xl"
           aria-live="off"
         >
           {fmt(seconds)}
@@ -55,7 +55,12 @@ const SessionTimer: React.FC = () => {
         )}
       </div>
 
-      {current && <LeaguesProgress />}
+      {current && (
+        <>
+          <div className="meander" aria-hidden />
+          <LeaguesProgress />
+        </>
+      )}
     </section>
   );
 };

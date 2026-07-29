@@ -1,14 +1,37 @@
 /* src/index.css */
+@import "./fonts.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * The wine-dark sea — οἶνοψ πόντος.
+ *
+ * The ground was a neutral near-black, which is the default of every dark
+ * dashboard ever shipped and read as exactly that. These are warm and violet
+ * instead: still dark enough to stare at for an hour, but the app no longer
+ * looks like a settings screen.
+ */
 :root {
-  --bg: #0e0e11;
-  --surface: #1a1a1f;
-  --surface-alt: #22222a;
-  --accent: #41d1ff;
-  --accent-soft: #1368d6;
+  --bg: #120e1a;
+  --surface: #1b1526;
+  --surface-alt: #251d33;
+  --ink: #ece7f2;
+
+  /* Overridden per station by useTierTheme. */
+  --accent: #7fb8c9;
+  --accent-soft: #2b6c86;
+
+  /* Fixed hues that do not follow the station. */
+  --bronze: #c9a227;
+  /* Bright enough to read as text on the ground (5.8:1). */
+  --verdigris: #3f9d8a;
+  /* Darker, for filled buttons: white on the bright shade is only 3.3:1,
+     which fails AA for the 16px label on the primary action. This is 4.9:1. */
+  --verdigris-deep: #2f7d6b;
+  --oxblood: #8c2f39;
+
   color-scheme: dark;
 }
 
@@ -19,9 +42,22 @@ html {
 }
 
 body {
-  @apply bg-[color:var(--bg)] text-gray-200 antialiased;
+  @apply bg-[color:var(--bg)] antialiased;
+  color: var(--ink);
   /* Fills the notch/rounded-corner area behind the status bar on Android. */
   min-height: 100dvh;
+}
+
+/*
+ * Serif for anything that speaks, sans for anything that labels.
+ *
+ * A single sans at three sizes was most of why the app read as generic. The
+ * serif carries the voice; body text and controls stay sans because long serif
+ * UI copy at 13px on a phone is harder to read, and this app lives on phones.
+ */
+.font-display {
+  font-family: Spectral, ui-serif, Georgia, serif;
+  font-feature-settings: "lnum" 1, "tnum" 1;
 }
 
 /* ── surfaces, in three weights ──────────────────────────────────────
@@ -68,10 +104,17 @@ body {
   @apply text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-gray-400;
 }
 
+/* Corners are squarer than before: rounded-full pills read as app-store. */
 .btn { @apply px-4 py-2 rounded-md font-medium transition-colors; }
 .btn:disabled { @apply cursor-not-allowed opacity-40; }
-.btn-green  { @apply bg-emerald-600 hover:bg-emerald-700 text-white; }
-.btn-red    { @apply bg-red-600     hover:bg-red-700     text-white; }
+
+/* Verdigris rather than a stock emerald, which belonged to nothing. */
+.btn-green  { background: var(--verdigris-deep); @apply text-white; }
+.btn-green:hover { background: color-mix(in srgb, var(--verdigris-deep) 85%, black); }
+
+.btn-red    { background: var(--oxblood); @apply text-white; }
+.btn-red:hover { background: color-mix(in srgb, var(--oxblood) 82%, black); }
+
 .btn-blue   { @apply bg-gradient-to-r from-[color:var(--accent)] to-[color:var(--accent-soft)] text-white hover:opacity-90; }
 .btn-outline{ @apply bg-transparent border border-white/20 hover:bg-white/10; }
 
@@ -111,6 +154,37 @@ body::before{
     color-mix(in srgb, var(--accent) 20%, transparent) 0%,
     transparent 70%
   );
+}
+
+/*
+ * A film of grain over everything.
+ *
+ * Perfectly flat fills are the tell of a template. This is faint enough to
+ * read as paper or old plaster rather than as noise, and it is generated
+ * rather than an image so it costs nothing to load.
+ */
+body::after{
+  content:''; position:fixed; inset:0; z-index:-1; pointer-events:none;
+  opacity:.035;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/*
+ * A meander — the Greek key — as a divider.
+ *
+ * One ornament, used in one place. The discipline matters: this style goes
+ * kitsch the moment there are laurel wreaths in the corners too.
+ */
+.meander{
+  height:8px;
+  background-repeat:repeat-x;
+  background-size:auto 8px;
+  opacity:.45;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='8' viewBox='0 0 24 8'%3E%3Cpath d='M0 7h6V1h12v6h6' fill='none' stroke='%23c9a227' stroke-width='1.2'/%3E%3Cpath d='M9 4.5h6' fill='none' stroke='%23c9a227' stroke-width='1.2'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::after { display: none; }
 }
 
 /* The mentor floats over everything, so keep it out of the tour's way. */

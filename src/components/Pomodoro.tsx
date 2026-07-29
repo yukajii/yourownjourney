@@ -45,7 +45,7 @@ const Pomodoro = () => {
         </button>
       </div>
 
-      <div className="font-mono text-3xl tabular-nums" aria-live="polite">
+      <div className="font-display text-4xl tabular-nums" aria-live="polite">
         {mmss(secondsLeft)}
       </div>
 

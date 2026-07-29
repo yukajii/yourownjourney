@@ -29,11 +29,11 @@ const GoalHeader = () => {
 
   return (
     <div className="flex flex-col gap-1">
-      <h1 className="text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">
+      <h1 className="font-display text-3xl font-semibold leading-tight sm:text-4xl">
         {current.name}
       </h1>
-      <p className="flex items-baseline gap-2 text-sm">
-        <span className="font-medium text-[color:var(--accent)]">{tier.name}</span>
+      <p className="flex flex-wrap items-baseline gap-x-2 text-sm">
+        <span className="font-display text-base text-[color:var(--accent)]">{tier.name}</span>
         <span className="text-gray-500">— {tier.epithet}</span>
       </p>
     </div>

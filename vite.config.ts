@@ -34,8 +34,8 @@ export default defineConfig({
         scope: '/',
         display: 'standalone',
         orientation: 'portrait',
-        background_color: '#0e0e11',
-        theme_color: '#0e0e11',
+        background_color: '#120e1a',
+        theme_color: '#120e1a',
         categories: ['productivity', 'lifestyle'],
         icons: [
           { src: 'pwa-192x192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
@@ -53,11 +53,28 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        // Fonts are deliberately excluded from the precache. There are 17
+        // subsets and any one reader needs two or three; precaching them all
+        // would push 355 KB of Greek and Vietnamese at everyone and throw away
+        // the unicode-range split that makes subsetting worth having. They are
+        // cached on first use instead, so an installed copy keeps whatever it
+        // has actually rendered.
+        globPatterns: ['**/*.{js,css,html,svg,png}'],
+        runtimeCaching: [
+          {
+            urlPattern: ({ url }) => url.pathname.startsWith('/fonts/'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'leagues-fonts',
+              expiration: { maxEntries: 24, maxAgeSeconds: 60 * 60 * 24 * 365 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+        ],
         cleanupOutdatedCaches: true,
         navigateFallback: '/index.html',
-        // Firebase Hosting serves the auth handler and SDK shims under /__/;
-        // those must reach the network, never the SPA shell.
+        // The Firebase auth handler and SDK shims live under /__/; those must
+        // reach the network, never the SPA shell.
         navigateFallbackDenylist: [/^\/__/],
       },
       devOptions: {
