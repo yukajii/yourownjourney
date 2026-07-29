@@ -1,9 +1,7 @@
 import React, { useEffect } from 'react';
 import {
   AuthBar,
-  GoalHeader,
   SessionTimer,
-  LeaguesProgress,
   Journey,
   Pomodoro,
   Logs,
@@ -15,10 +13,14 @@ import {
   StoicMentor,
 } from './components';
 import { useGoals } from './contexts/GoalsContext';
+import { useTierTheme } from './hooks/useTierTheme';
 import { maybeRunIntroTour } from './introTour';
 
 const App: React.FC = () => {
   const { loading } = useGoals();
+
+  // Paints the whole app in the current stage's colour.
+  useTierTheme();
 
   useEffect(() => {
     // Wait for the first data read: the tour highlights cards that only exist
@@ -30,17 +32,27 @@ const App: React.FC = () => {
     <div className="flex min-h-screen flex-col">
       <AuthBar />
 
-      <main className="mx-auto w-full max-w-xl flex-grow space-y-6 p-4 pb-24">
-        <GoalHeader />
+      <main className="mx-auto w-full max-w-xl flex-grow space-y-5 p-4 pb-28">
+        {/* The walk itself — goal, clock and road, on one surface. */}
         <SessionTimer />
-        <LeaguesProgress />
+
         <Journey />
         <Pomodoro />
         <Logs />
-        <GoalManager />
         <Reflection />
-        <ExportData />
-        <ResetAll />
+        <GoalManager />
+
+        {/* Housekeeping, folded away until wanted. */}
+        <details className="group">
+          <summary className="cursor-pointer list-none rounded-xl px-4 py-3 text-sm text-gray-500 transition-colors hover:bg-white/[0.03] hover:text-gray-300">
+            <span className="inline-block transition-transform group-open:rotate-90">▸</span>{' '}
+            Data &amp; settings
+          </summary>
+          <div className="mt-3 space-y-3">
+            <ExportData />
+            <ResetAll />
+          </div>
+        </details>
       </main>
 
       <StoicMentor />

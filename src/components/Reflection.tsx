@@ -40,7 +40,7 @@ const Reflection = () => {
 
   return (
     <section id="reflection" className="card flex flex-col gap-3">
-      <h2 className="text-lg font-semibold">Reflection</h2>
+      <h2 className="section-title">Reflection</h2>
 
       {!readiness.ready ? (
         <p className="text-sm text-gray-400">{readiness.reason}</p>

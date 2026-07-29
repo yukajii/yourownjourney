@@ -38,8 +38,14 @@ const GoalManager = () => {
   };
 
   return (
-    <section id="goal-manager" className="card flex flex-col gap-4">
-      <h2 className="text-lg font-semibold">Goals</h2>
+    // Prominent while there is nothing to walk toward, quiet once there is:
+    // creating the first goal is the only thing that matters on an empty
+    // screen, and routine switching afterwards does not warrant a full card.
+    <section
+      id="goal-manager"
+      className={`flex flex-col gap-4 ${goals.length === 0 ? "card" : "card-quiet"}`}
+    >
+      <h2 className="section-title">Goals</h2>
 
       {goals.length > 0 ? (
         <select

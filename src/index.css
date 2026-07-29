@@ -24,8 +24,48 @@ body {
   min-height: 100dvh;
 }
 
+/* ── surfaces, in three weights ──────────────────────────────────────
+ *
+ * Everything used to be one `.card`, so eight sections carried identical
+ * visual weight and the eye had nowhere to land. These give the walk itself
+ * the most presence, the things you read next to it rather less, and the
+ * things you touch twice a year almost none.
+ */
+
 .card {
-  @apply bg-[color:var(--surface)] rounded-xl p-5 border border-white/10 shadow-md;
+  @apply rounded-2xl p-5 border border-white/[0.07] shadow-md;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--surface-alt) 55%, transparent) 0%,
+      var(--surface) 60%
+    );
+}
+
+/* The walk in progress. Lit from above by the current tier's colour. */
+.card-hero {
+  @apply rounded-3xl p-6 sm:p-7 border shadow-xl;
+  border-color: color-mix(in srgb, var(--accent) 22%, transparent);
+  background:
+    radial-gradient(
+      120% 90% at 50% -20%,
+      color-mix(in srgb, var(--accent) 16%, transparent) 0%,
+      transparent 65%
+    ),
+    linear-gradient(180deg, var(--surface-alt) 0%, var(--surface) 55%);
+  box-shadow:
+    0 1px 0 0 color-mix(in srgb, var(--accent) 14%, transparent) inset,
+    0 18px 50px -24px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+/* Housekeeping. Present, not competing. */
+.card-quiet {
+  @apply rounded-2xl border border-white/[0.06] bg-white/[0.02] p-4;
+}
+
+/* Demoted section headings: legible, clearly subordinate to the hero. */
+.section-title {
+  @apply text-[0.7rem] font-semibold uppercase tracking-[0.14em] text-gray-400;
 }
 
 .btn { @apply px-4 py-2 rounded-md font-medium transition-colors; }

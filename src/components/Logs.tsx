@@ -49,7 +49,7 @@ const Logs = () => {
   return (
     <section id="logs-section" className="card flex flex-col gap-3">
       <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-lg font-semibold">Logs</h2>
+        <h2 className="section-title">Logs</h2>
         <div className="flex items-baseline gap-3">
           <span className="text-sm text-gray-400">
             {(current.totalTime / 3600).toFixed(2)} L total

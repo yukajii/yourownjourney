@@ -35,7 +35,7 @@ const Pomodoro = () => {
   return (
     <section id="pomodoro-section" className="card flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Pomodoro</h2>
+        <h2 className="section-title">Pomodoro</h2>
         <button
           onClick={() => setShowSettings((s) => !s)}
           aria-expanded={showSettings}

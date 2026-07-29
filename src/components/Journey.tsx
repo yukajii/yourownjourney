@@ -44,7 +44,7 @@ const Journey = () => {
   return (
     <section id="journey" className="card flex flex-col gap-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <h2 className="text-lg font-semibold">Journey</h2>
+        <h2 className="section-title">Journey</h2>
         <span className="text-sm text-gray-400">
           {streak > 0 ? `${streak} day streak` : "No streak yet"}
           {" · "}

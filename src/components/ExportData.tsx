@@ -42,7 +42,7 @@ const ExportData = () => {
 
   return (
     <section id="export-data" className="card flex flex-col gap-3">
-      <h2 className="text-lg font-semibold">Your data</h2>
+      <h2 className="section-title">Your data</h2>
       <p className="text-sm text-gray-400">
         Every goal, every logged hour and every note — yours to keep.
       </p>

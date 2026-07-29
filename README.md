@@ -103,6 +103,24 @@ a session. `mentor.test.ts` asserts the invariant directly across a range of
 states — no absence line when today is walked, no streak claim without a
 streak, no pace claim without movement.
 
+### Look and hierarchy
+
+Eight sections once shared one `.card` recipe and one heading size, so the
+session timer had no more presence than the export buttons and the eye had
+nowhere to land. Surfaces now come in three weights: `.card-hero` for the walk
+itself, `.card` for the things you read beside it, `.card-quiet` for
+housekeeping. Export and reset live behind a disclosure. Section headings are
+deliberately small and lettered so nothing competes with the clock.
+
+The tiers carry an identity rather than being numbers on a bar. Each stage —
+Wanderer, Traveller, Wayfarer, Pathfinder, Master of the Road — has a name and
+its own accent, written to the root element by `useTierTheme`, so every
+`var(--accent)` in the app moves together the moment a tier is reached. The
+palette walks from first light to a night sky over the course of the journey.
+
+`Trail` replaces the flat bar: ground covered behind the walker, the way ahead
+still dashed, and a cairn or a tier marker standing at the next mark.
+
 ### Waypoints
 
 The tiers — 20, 100, 1000, 10000 — frame the whole journey but make a poor

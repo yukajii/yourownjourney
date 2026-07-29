@@ -1,10 +1,7 @@
 import { useGoals } from "../contexts/GoalsContext";
 import { useSession } from "../contexts/SessionContext";
 import { nextTier, pacePerWeek, projectArrival, waypointProgress } from "../journey";
-
-/** gradient colours */
-const BG = "from-cyan-300/20 to-cyan-500/20";
-const FG = "from-cyan-400 to-cyan-500";
+import Trail from "./Trail";
 
 const arrival = (ms: number) =>
   new Date(ms).toLocaleDateString(undefined, {
@@ -15,12 +12,16 @@ const arrival = (ms: number) =>
 
 const round = (n: number) => (Number.isInteger(n) ? String(n) : n.toFixed(2));
 
+/**
+ * The road between the last mark and the next. Lives inside the hero panel
+ * rather than in a card of its own — it is part of the walk, not a report on it.
+ */
 const LeaguesProgress = () => {
   const { current, logs } = useGoals();
   const { isActive, seconds } = useSession();
   if (!current) return null;
 
-  // Count the running session so the bar advances live.
+  // Count the running session so the trail advances live.
   const { leagues, from, to, pct, toIsTier, remaining } = waypointProgress(
     current.totalTime + (isActive ? seconds : 0)
   );
@@ -34,55 +35,41 @@ const LeaguesProgress = () => {
   const tierEta = tier === null ? null : projectArrival(tier - leagues, pace);
 
   return (
-    <section id="leagues-progress" className="card flex flex-col gap-4">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-lg font-semibold">Leagues Progress</h2>
-        <span className="font-mono text-sm text-gray-400">
-          {round(from)} → {round(to)}
+    <div id="leagues-progress" className="flex flex-col gap-2 border-t border-white/[0.07] pt-5">
+      <div className="flex items-baseline justify-between font-mono text-xs text-gray-500">
+        <span>{round(from)}</span>
+        <span className="text-gray-300">
+          <span className="text-lg font-semibold tabular-nums text-gray-100">
+            {leagues.toFixed(2)}
+          </span>{" "}
+          Leagues walked
         </span>
+        <span>{round(to)}</span>
       </div>
 
-      <div
-        role="progressbar"
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={Math.round(pct)}
-        aria-label={`Progress toward ${to} leagues`}
-        className={`h-4 w-full overflow-hidden rounded bg-gradient-to-r ${BG}`}
-      >
-        <div
-          style={{ width: `${pct}%` }}
-          className={`h-full bg-gradient-to-r ${FG} transition-all ${
-            isActive ? "running-pulse" : ""
-          }`}
-        />
-      </div>
+      <Trail
+        pct={pct}
+        toIsTier={toIsTier}
+        walking={isActive}
+        label={`Progress toward ${to} leagues`}
+      />
 
       <div className="flex flex-col gap-1 text-sm">
-        <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-          <span className="text-gray-300">
-            {leagues.toFixed(2)} Leagues walked
-          </span>
-          <span className="text-gray-400">
-            {remaining.toFixed(2)} to {toIsTier ? "the next tier" : "the next waypoint"}
-          </span>
-        </div>
+        <p className="text-gray-400">
+          {remaining.toFixed(2)} to {toIsTier ? "the next tier" : "the next waypoint"}
+          {eta && <span className="text-gray-500"> — around {arrival(eta)}</span>}
+        </p>
 
         {pace > 0 && (
           <p className="text-gray-500">
             {pace.toFixed(1)} Leagues a week
-            {eta && ` — ${round(to)} by ${arrival(eta)}`}
-          </p>
-        )}
-
-        {tier !== null && !toIsTier && (
-          <p className="text-gray-500">
-            Next tier: {tier} Leagues
-            {tierEta && ` — around ${arrival(tierEta)}`}
+            {tier !== null && !toIsTier && tierEta && (
+              <> — {tier} Leagues by {arrival(tierEta)}</>
+            )}
           </p>
         )}
       </div>
-    </section>
+    </div>
   );
 };
 
