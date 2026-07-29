@@ -8,6 +8,11 @@ interface ImportMetaEnv {
    * into the bundle and served to every visitor.
    */
   readonly VITE_REFLECTION_ENDPOINT?: string;
+  /**
+   * Cloudflare Web Analytics site token. Public by design — it identifies the
+   * site being measured, not an account. Unset means no analytics at all.
+   */
+  readonly VITE_CF_ANALYTICS_TOKEN?: string;
 }
 
 interface ImportMeta {

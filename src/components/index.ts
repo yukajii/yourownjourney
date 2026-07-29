@@ -1,4 +1,5 @@
 // src/components/index.ts
+export { default as Landing }          from "./Landing";
 export { default as AuthBar }          from "./AuthBar";
 export { default as GoalHeader }       from "./GoalHeader";
 export { default as SessionTimer }     from "./SessionTimer";

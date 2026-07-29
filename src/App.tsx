@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import {
+  Landing,
   AuthBar,
   SessionTimer,
   Journey,
@@ -12,12 +13,18 @@ import {
   UpdatePrompt,
   StoicMentor,
 } from './components';
+import { useAuth } from './contexts/AuthContext';
 import { useGoals } from './contexts/GoalsContext';
 import { useTierTheme } from './hooks/useTierTheme';
 import { maybeRunIntroTour } from './introTour';
 
 const App: React.FC = () => {
-  const { loading } = useGoals();
+  const { loading, goals } = useGoals();
+  const { user } = useAuth();
+
+  // Only ever shown to someone who has not started: a returning visitor, or
+  // anyone signed in, goes straight to the tool.
+  const isNewcomer = !loading && goals.length === 0 && !user;
 
   // Paints the whole app in the current stage's colour.
   useTierTheme();
@@ -33,6 +40,8 @@ const App: React.FC = () => {
       <AuthBar />
 
       <main className="mx-auto w-full max-w-xl flex-grow space-y-5 p-4 pb-28">
+        {isNewcomer && <Landing />}
+
         {/* The walk itself — goal, clock and road, on one surface. */}
         <SessionTimer />
 

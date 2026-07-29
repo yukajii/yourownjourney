@@ -15,4 +15,10 @@ preview_urls = false
 # which stores it server-side and never writes it to this file or the bundle.
 [vars]
 FIREBASE_PROJECT_ID = "leagues-2790f"
-ALLOWED_ORIGINS = "https://leagues-2790f.web.app,https://leagues-2790f.firebaseapp.com,http://localhost:5176"
+ALLOWED_ORIGINS = "https://leagues.yukajii.com,https://leagues-2790f.web.app,https://leagues-2790f.firebaseapp.com,http://localhost:5176"
+
+# Daily counters for rate limiting. Without this the endpoint is an unbounded
+# spend on a funded API key for anyone who can sign in.
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "1a7857bcd26943ad905e45c8a0712192"

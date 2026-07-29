@@ -95,11 +95,11 @@ describe("mentorLines", () => {
     expect(line?.text).toContain("20 days");
   });
 
-  it("reaches for a tier when one is close", () => {
-    // 19.5 leagues: half a league short of the 20 tier.
+  it("reaches for a station when one is close", () => {
+    // 19.5 leagues: half a league short of the 20 threshold.
     const s = buildSignals(goal(19.5 * 3600), [log(1)], idle, NOW);
     const line = mentorLines(s).find((l) => l.id === "near-mark");
-    expect(line?.text).toContain("tier");
+    expect(line?.text).toContain("landfall");
     expect(line?.priority).toBeGreaterThan(60);
   });
 

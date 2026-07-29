@@ -130,19 +130,19 @@ export const mentorLines = (s: MentorSignals): MentorLine[] => {
   if (s.daysSinceLast >= 14) {
     add(
       "long-absence",
-      `It has been ${s.daysSinceLast} days. The road did not go anywhere, and neither did the ${round(s.leagues)} Leagues you already walked.`,
+      `${s.daysSinceLast} days among the Lotus Eaters. The sea did not go anywhere, and neither did the ${round(s.leagues)} Leagues already behind you.`,
       70
     );
   } else if (s.daysSinceLast >= 7) {
     add(
       "week-absence",
-      "A week away is not a failure. Begin again today and the streak begins again with you.",
+      "A week becalmed is not a wreck. Put out again today and the wind is yours.",
       65
     );
   } else if (s.daysSinceLast >= 2) {
     add(
       "short-absence",
-      `${s.daysSinceLast} days since your last league. The shortest way back is a single hour.`,
+      `${s.daysSinceLast} days since your last league. The shortest way back to sea is a single hour.`,
       60
     );
   }
@@ -152,8 +152,8 @@ export const mentorLines = (s: MentorSignals): MentorLine[] => {
     add(
       "near-mark",
       s.nextIsTier
-        ? `${round(s.remaining)} Leagues from the ${round(s.next)} tier. That one is worth reaching for.`
-        : `${round(s.remaining)} Leagues to ${round(s.next)}. One good session away.`,
+        ? `${round(s.remaining)} Leagues from landfall at ${round(s.next)}. That one is worth the oars.`
+        : `${round(s.remaining)} Leagues to ${round(s.next)}. One good crossing away.`,
       s.nextIsTier ? 75 : 55
     );
   }

@@ -2,15 +2,15 @@ import { toLeagues } from "./leagues";
 import { TIERS } from "./models";
 
 /**
- * The journey's five stages.
+ * Stations of the voyage.
  *
- * The tiers were only ever numbers on a progress bar, which is a thin reward
- * for years of work. Each stage now carries a name and its own colour, so the
- * app visibly changes character as the journey climbs — the palette walks from
- * first light through to a night sky, and reaching 100 leagues is something you
- * can see rather than something you have to read.
+ * A league is a nautical measure — three nautical miles — so the unit was
+ * always maritime. The stages take their names from the Odyssey, and they are
+ * chosen to mean something to a person building a habit rather than to
+ * decorate: Circe's island is where a year vanishes pleasantly, the Sirens are
+ * the temptation you have to plan for, Ithaca is arrival.
  *
- * `from` is inclusive: a stage begins the moment its league count is reached.
+ * `from` is inclusive: a station begins the moment its league count is reached.
  */
 export type Tier = {
   index: number;
@@ -26,41 +26,41 @@ export type Tier = {
 export const TIER_STAGES: Tier[] = [
   {
     index: 0,
-    name: "Wanderer",
+    name: "Troy",
     from: 0,
-    epithet: "The road is new",
+    epithet: "The sails are set",
     accent: "#7dd3fc",
     accentSoft: "#0284c7",
   },
   {
     index: 1,
-    name: "Traveller",
+    name: "The Cyclops' Shore",
     from: TIERS[0], // 20
-    epithet: "The habit holds",
+    epithet: "Cunning beats strength",
     accent: "#41d1ff",
     accentSoft: "#1368d6",
   },
   {
     index: 2,
-    name: "Wayfarer",
+    name: "Circe's Island",
     from: TIERS[1], // 100
-    epithet: "Distance behind you",
+    epithet: "A year can vanish here",
     accent: "#fbbf24",
     accentSoft: "#b45309",
   },
   {
     index: 3,
-    name: "Pathfinder",
+    name: "The Sirens' Strait",
     from: TIERS[2], // 1000
-    epithet: "Few walk this far",
+    epithet: "You hear the song and sail on",
     accent: "#fb7185",
     accentSoft: "#9f1239",
   },
   {
     index: 4,
-    name: "Master of the Road",
+    name: "Ithaca",
     from: TIERS[3], // 10000
-    epithet: "The road is yours",
+    epithet: "The long way home",
     accent: "#c4b5fd",
     accentSoft: "#6d28d9",
   },

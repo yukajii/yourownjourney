@@ -33,37 +33,37 @@ describe("TIER_STAGES", () => {
 });
 
 describe("tierForLeagues", () => {
-  it("starts as a Wanderer", () => {
-    expect(tierForLeagues(0).name).toBe("Wanderer");
-    expect(tierForLeagues(19.99).name).toBe("Wanderer");
+  it("starts at Troy", () => {
+    expect(tierForLeagues(0).name).toBe("Troy");
+    expect(tierForLeagues(19.99).name).toBe("Troy");
   });
 
-  it("changes stage exactly on the threshold, not after it", () => {
-    expect(tierForLeagues(20).name).toBe("Traveller");
-    expect(tierForLeagues(100).name).toBe("Wayfarer");
-    expect(tierForLeagues(1000).name).toBe("Pathfinder");
-    expect(tierForLeagues(10_000).name).toBe("Master of the Road");
+  it("changes station exactly on the threshold, not after it", () => {
+    expect(tierForLeagues(20).name).toBe("The Cyclops' Shore");
+    expect(tierForLeagues(100).name).toBe("Circe's Island");
+    expect(tierForLeagues(1000).name).toBe("The Sirens' Strait");
+    expect(tierForLeagues(10_000).name).toBe("Ithaca");
   });
 
-  it("holds the final stage however far past it you walk", () => {
-    expect(tierForLeagues(50_000).name).toBe("Master of the Road");
+  it("stays at Ithaca however far past it you sail", () => {
+    expect(tierForLeagues(50_000).name).toBe("Ithaca");
   });
 
   it("treats a negative total as the beginning rather than throwing", () => {
-    expect(tierForLeagues(-5).name).toBe("Wanderer");
+    expect(tierForLeagues(-5).name).toBe("Troy");
   });
 });
 
 describe("tierForSeconds", () => {
   it("converts before deciding", () => {
-    expect(tierForSeconds(hours(19)).name).toBe("Wanderer");
-    expect(tierForSeconds(hours(20)).name).toBe("Traveller");
+    expect(tierForSeconds(hours(19)).name).toBe("Troy");
+    expect(tierForSeconds(hours(20)).name).toBe("The Cyclops' Shore");
   });
 });
 
 describe("nextStage", () => {
-  it("points at the stage ahead", () => {
-    expect(nextStage(TIER_STAGES[0])?.name).toBe("Traveller");
+  it("points at the station ahead", () => {
+    expect(nextStage(TIER_STAGES[0])?.name).toBe("The Cyclops' Shore");
   });
 
   it("is null at the end of the road", () => {

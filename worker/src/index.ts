@@ -19,7 +19,19 @@ export interface Env {
   FIREBASE_PROJECT_ID: string;
   /** Comma-separated origins allowed to call this Worker. */
   ALLOWED_ORIGINS: string;
+  /** Daily request counters, keyed by user and in total. */
+  RATE_LIMIT: KVNamespace;
 }
+
+/**
+ * Caps. A reflection covers a month, so a handful a day is generous for real
+ * use and still bounds what a single compromised account can spend.
+ *
+ * The global cap is the one that actually protects the wallet: it holds even
+ * if someone registers a hundred accounts.
+ */
+const PER_USER_PER_DAY = 5;
+const GLOBAL_PER_DAY = 200;
 
 const MODEL = "gpt-5.6-luna";
 const OPENAI_URL = "https://api.openai.com/v1/chat/completions";
@@ -51,6 +63,32 @@ const json = (body: unknown, status: number, headers: Record<string, string>) =>
     status,
     headers: { ...headers, "Content-Type": "application/json" },
   });
+
+/** UTC day, so the window rolls at a fixed moment regardless of the caller. */
+const today = () => new Date().toISOString().slice(0, 10);
+
+/**
+ * Counts one request against a key and reports whether it was over the cap.
+ *
+ * KV is eventually consistent, so two simultaneous requests can both read the
+ * same count and slip through. That is acceptable here: the point is to bound
+ * spending, not to be exact, and being off by one costs a fraction of a cent.
+ *
+ * Keys expire on their own so nothing needs cleaning up.
+ */
+export async function countAndCheck(
+  kv: Pick<KVNamespace, "get" | "put">,
+  key: string,
+  limit: number
+): Promise<{ allowed: boolean; used: number }> {
+  const raw = await kv.get(key);
+  const used = raw ? Number(raw) || 0 : 0;
+
+  if (used >= limit) return { allowed: false, used };
+
+  await kv.put(key, String(used + 1), { expirationTtl: 172_800 }); // two days
+  return { allowed: true, used: used + 1 };
+}
 
 /**
  * Verifies a Firebase ID token: correct signature from Google, correct issuer
@@ -87,11 +125,42 @@ export default {
       return json({ error: "Sign in to request a reflection." }, 401, cors);
     }
 
+    let uid: string;
     try {
-      await verifyFirebaseToken(token, env.FIREBASE_PROJECT_ID);
+      uid = await verifyFirebaseToken(token, env.FIREBASE_PROJECT_ID);
     } catch {
       // Deliberately vague: a precise reason helps someone probing the endpoint.
       return json({ error: "Sign in to request a reflection." }, 401, cors);
+    }
+
+    /* ── how much they have already spent today ─────────────────── */
+    const day = today();
+    try {
+      const mine = await countAndCheck(env.RATE_LIMIT, `u:${uid}:${day}`, PER_USER_PER_DAY);
+      if (!mine.allowed) {
+        return json(
+          {
+            error: `That is ${PER_USER_PER_DAY} reflections today. A month does not change that fast — try again tomorrow.`,
+          },
+          429,
+          cors
+        );
+      }
+
+      const all = await countAndCheck(env.RATE_LIMIT, `global:${day}`, GLOBAL_PER_DAY);
+      if (!all.allowed) {
+        console.warn("Global daily reflection cap reached");
+        return json(
+          { error: "Reflections are busy today. Please try again tomorrow." },
+          429,
+          cors
+        );
+      }
+    } catch (e) {
+      // If the counter store is unreachable the spend is unbounded, so refuse.
+      // Failing open here would defeat the point of having a cap at all.
+      console.error("Rate limit check failed", e);
+      return json({ error: "Reflections are unavailable right now." }, 503, cors);
     }
 
     /* ── what they are asking for ───────────────────────────────── */
