@@ -65,7 +65,9 @@ export const StoicMentor = () => {
   return (
     <div
       id="stoic-mentor"
-      className="fixed bottom-6 right-6 z-50 flex items-center space-x-3 select-none"
+      // z-40 keeps the mentor beneath every overlay — modals, the iOS install
+      // sheet, the update prompt — rather than floating over them.
+      className="fixed bottom-6 right-6 z-40 flex items-center space-x-3 select-none"
     >
       <AnimatePresence mode="wait">
         <motion.div

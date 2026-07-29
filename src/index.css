@@ -187,5 +187,7 @@ body::after{
   body::after { display: none; }
 }
 
-/* The mentor floats over everything, so keep it out of the tour's way. */
-body.tour-active #stoic-mentor{ display:none; }
+/* The mentor floats in a corner, so it steps aside for the tour and for any
+   prompt anchored to the same corner. */
+body.tour-active #stoic-mentor,
+body.prompt-open #stoic-mentor{ display:none; }

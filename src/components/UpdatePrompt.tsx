@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
 
 /**
@@ -12,7 +13,20 @@ const UpdatePrompt = () => {
     updateServiceWorker,
   } = useRegisterSW();
 
-  if (!offlineReady && !needRefresh) return null;
+  const showing = offlineReady || needRefresh;
+
+  /*
+   * The mentor floats in the same bottom corner and would sit on top of this
+   * on a narrow screen, where the bubble is most of the width. Both are fixed
+   * overlays, so raising the z-index alone is not enough — they would simply
+   * overlap. The mentor steps aside while this is up.
+   */
+  useEffect(() => {
+    document.body.classList.toggle("prompt-open", showing);
+    return () => document.body.classList.remove("prompt-open");
+  }, [showing]);
+
+  if (!showing) return null;
 
   const dismiss = () => {
     setOfflineReady(false);
@@ -22,7 +36,7 @@ const UpdatePrompt = () => {
   return (
     <div
       role="status"
-      className="fixed inset-x-0 bottom-0 z-40 mx-auto mb-[env(safe-area-inset-bottom)] w-full max-w-md p-3"
+      className="fixed inset-x-0 bottom-0 z-50 mx-auto mb-[env(safe-area-inset-bottom)] w-full max-w-md p-3"
     >
       <div className="card flex items-center gap-3 text-sm shadow-lg">
         <span className="flex-1">
