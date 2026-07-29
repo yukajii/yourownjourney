@@ -18,7 +18,7 @@ import { buildSignals, mentorLines, situationKey } from "../mentor";
 const ROTATE_MS = 15_000;
 
 export const StoicMentor = () => {
-  const { current, logs } = useGoals();
+  const { current, logs, loading } = useGoals();
   const { isActive, seconds } = useSession();
   const [index, setIndex] = useState(0);
 
@@ -50,6 +50,17 @@ export const StoicMentor = () => {
 
   const line = lines[Math.min(index, lines.length - 1)];
   if (!line) return null;
+
+  /*
+   * Nothing until the first read has settled.
+   *
+   * Goals are loaded in an effect, so the first paint has no goal even when
+   * one is stored. Rendering then meant speaking the "name a goal" line,
+   * immediately recomputing, and — because AnimatePresence keys on the line —
+   * animating a second bubble in over the top. It read as the mentor appearing
+   * twice.
+   */
+  if (loading) return null;
 
   return (
     <div

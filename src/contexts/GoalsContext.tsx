@@ -4,6 +4,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -69,16 +70,28 @@ export const GoalsProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   const uid = user?.uid ?? null;
 
-  const [goals, setGoals] = useState<Goal[]>([]);
-  const [currentGoalId, setCurrentGoalId] = useState<string | null>(null);
-  const [logs, setLogs] = useState<Log[]>([]);
+  /**
+   * Read before the first render rather than in an effect.
+   *
+   * Loading in an effect meant frame one always painted an empty app, even for
+   * someone with years of history on the device — and anything that animates on
+   * change, the mentor especially, would show its empty-state line and then
+   * animate a second time when the real data arrived a frame later.
+   */
+  const initial = useMemo(() => readAll(localStorage), []);
+
+  const [goals, setGoals] = useState<Goal[]>(initial.goals);
+  const [currentGoalId, setCurrentGoalId] = useState<string | null>(initial.currentGoalId);
+  const [logs, setLogs] = useState<Log[]>(() =>
+    newest(initial.logsByGoal[initial.currentGoalId ?? ""] ?? [])
+  );
   const [loading, setLoading] = useState(true);
 
   /**
    * Signed-out, this device holds everything. Signed in it is still written,
    * so signing out does not appear to erase the journey.
    */
-  const localRef = useRef<LocalSnapshot>({ goals: [], logsByGoal: {}, currentGoalId: null });
+  const localRef = useRef<LocalSnapshot>(initial);
 
   /** Guards the one-time local→cloud adoption so a reset cannot resurrect data. */
   const reconciledFor = useRef<string | null>(null);
